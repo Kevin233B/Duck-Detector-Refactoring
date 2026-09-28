@@ -16,44 +16,59 @@
 
 package com.eltavine.duckdetector.core.ui.components
 
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.eltavine.duckdetector.core.ui.R
+import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
+import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
+import com.eltavine.duckdetector.core.designsystem.theme.MotionTokens
+import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.evidence.DetectorStatus
+import com.eltavine.duckdetector.core.ui.R
+import com.eltavine.duckdetector.core.ui.presentation.StatusAppearance
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
-import com.eltavine.duckdetector.core.ui.theme.ShapeTokens
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 public fun DetectorCardFrame(
     title: String,
@@ -80,144 +95,175 @@ public fun DetectorCardFrame(
     val toggleDescription = stringResource(
         if (isExpanded) R.string.card_collapse else R.string.card_expand,
     )
-    val autoExpansionDirective = LocalDetectorAutoExpansionDirective.current
-    val detectorId = LocalDetectorIdentity.current
+    val haptics = LocalHapticFeedback.current
+    val headerInteraction = remember { MutableInteractionSource() }
+    val pressed by headerInteraction.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) MotionTokens.PressedScale else 1f,
+        animationSpec = MotionTokens.PressScale,
+        label = "cardPress",
+    )
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        animationSpec = MotionTokens.smoothSpring(),
+        label = "cardChevron",
+    )
 
-    LaunchedEffect(autoExpansionDirective.detectorIds, detectorId) {
-        if (detectorId == null || !autoExpansionDirective.shouldExpand(detectorId)) {
-            return@LaunchedEffect
-        }
-        if (expanded == null) {
-            internalExpanded = true
-        } else if (!isExpanded) {
-            onExpandedChange?.invoke(true)
-        }
-        autoExpansionDirective.onConsumed(detectorId)
-    }
-
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = ShapeTokens.CornerExtraLargeIncreased,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                // A tall expanded card pivots on its top edge so its header does not jump.
+                transformOrigin = TransformOrigin(0.5f, 0f)
+            }
+            .background(
+                color = DuckTheme.palette.groupedSurface,
+                shape = ShapeTokens.CornerExtraLargeIncreased,
+            )
+            .padding(horizontal = 18.dp, vertical = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .animateContentSize()
-                .padding(horizontal = 18.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+                .clickable(
+                    interactionSource = headerInteraction,
+                    indication = null,
+                    role = Role.Button,
+                    onClickLabel = toggleDescription,
+                ) {
+                    val next = !isExpanded
+                    haptics.performHapticFeedback(
+                        if (next) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff,
+                    )
+                    if (expanded == null) {
+                        internalExpanded = next
+                    }
+                    onExpandedChange?.invoke(next)
+                },
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(54.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            shape = ShapeTokens.CornerLargeIncreased,
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = leadingIcon,
-                        contentDescription = null,
-                        tint = appearance.iconTint,
-                    )
-                    leadingBadgeIcon?.let { badgeIcon ->
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .size(22.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                                    shape = CircleShape,
-                                )
-                                .padding(3.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = badgeIcon,
-                                contentDescription = leadingBadgeContentDescription,
-                                tint = leadingBadgeAppearance.iconTint,
-                            )
-                        }
-                    }
-                }
-
-                IconButton(
-                    onClick = {
-                        val next = !isExpanded
-                        if (expanded == null) {
-                            internalExpanded = next
-                        }
-                        onExpandedChange?.invoke(next)
-                    },
-                ) {
-                    Icon(
-                        imageVector = if (isExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                        contentDescription = toggleDescription,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                CardGlyph(
+                    icon = leadingIcon,
+                    appearance = appearance,
+                    badgeIcon = leadingBadgeIcon,
+                    badgeAppearance = leadingBadgeAppearance,
+                    badgeContentDescription = leadingBadgeContentDescription,
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     WrapSafeText(
                         text = title,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = DuckTypography.Headline,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     CompactStatusBadge(status = status)
                 }
-
-                if (subtitle.isNotBlank()) {
-                    WrapSafeText(
-                        text = subtitle,
-                        modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-
-                WrapSafeText(
-                    text = verdict,
-                    modifier = Modifier.fillMaxWidth(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                Icon(
+                    imageVector = Icons.Rounded.ExpandMore,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .rotate(chevronRotation),
                 )
             }
 
-            headerFacts()
+            if (subtitle.isNotBlank()) {
+                WrapSafeText(
+                    text = subtitle,
+                    modifier = Modifier.fillMaxWidth(),
+                    style = DuckTypography.Footnote,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
-            if (isExpanded) {
+            WrapSafeText(
+                text = verdict,
+                modifier = Modifier.fillMaxWidth(),
+                style = DuckTypography.Body.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+
+        headerFacts()
+
+        AnimatedVisibility(
+            visible = isExpanded,
+            enter = expandVertically(
+                animationSpec = MotionTokens.smoothSpring(IntSize.VisibilityThreshold),
+                expandFrom = Alignment.Top,
+            ) + fadeIn(MotionTokens.FadeInOut),
+            exit = shrinkVertically(
+                animationSpec = MotionTokens.smoothSpring(IntSize.VisibilityThreshold),
+                shrinkTowards = Alignment.Top,
+            ) + fadeOut(MotionTokens.FadeInOut),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 if (summary.isNotBlank()) {
                     WrapSafeText(
                         text = summary,
                         modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = DuckTypography.Callout,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-
                 content()
-            } else {
-                collapsedOverview()
             }
+        }
 
-            footerActions()
+        if (!isExpanded) {
+            collapsedOverview()
+        }
+
+        footerActions()
+    }
+}
+
+@Composable
+private fun CardGlyph(
+    icon: ImageVector,
+    appearance: StatusAppearance,
+    badgeIcon: ImageVector?,
+    badgeAppearance: StatusAppearance,
+    badgeContentDescription: String?,
+) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .background(color = appearance.tintWash, shape = ShapeTokens.CornerMedium),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = appearance.iconTint,
+        )
+        if (badgeIcon != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 5.dp, y = 5.dp)
+                    .size(20.dp)
+                    .background(color = DuckTheme.palette.groupedSurface, shape = CircleShape)
+                    .padding(2.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = badgeIcon,
+                    contentDescription = badgeContentDescription,
+                    tint = badgeAppearance.iconTint,
+                )
+            }
         }
     }
 }
