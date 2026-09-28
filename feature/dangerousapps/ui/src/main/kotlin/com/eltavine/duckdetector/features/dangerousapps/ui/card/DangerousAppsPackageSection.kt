@@ -16,7 +16,6 @@
 
 package com.eltavine.duckdetector.features.dangerousapps.ui.card
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -27,18 +26,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
-import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
-import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
-import com.eltavine.duckdetector.core.ui.components.DetectorHairline
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
+import com.eltavine.duckdetector.core.ui.theme.ShapeTokens
 import com.eltavine.duckdetector.features.dangerousapps.presentation.model.DangerousAppsCardModel
 import com.eltavine.duckdetector.features.dangerousapps.presentation.model.DangerousAppsPackageItemModel
 
@@ -48,24 +48,27 @@ internal fun DangerousAppsPackageSection(
 ) {
     when {
         model.packageItems.isEmpty() -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp)
-                    .background(color = DuckTheme.palette.groupedInset, shape = ShapeTokens.CornerLarge)
-                    .padding(horizontal = 14.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = ShapeTokens.CornerLargeIncreased,
             ) {
-                WrapSafeText(
-                    text = "No package hits",
-                    style = DuckTypography.CalloutEmphasized,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                WrapSafeText(
-                    text = model.summary,
-                    style = DuckTypography.Footnote,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    WrapSafeText(
+                        text = "No package hits",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    WrapSafeText(
+                        text = model.summary,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
 
@@ -74,7 +77,10 @@ internal fun DangerousAppsPackageSection(
                 model.packageItems.forEachIndexed { index, item ->
                     DangerousAppsPackageRow(item = item)
                     if (index < model.packageItems.lastIndex) {
-                        DetectorHairline()
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.18f),
+                            thickness = 1.dp,
+                        )
                     }
                 }
             }
@@ -90,23 +96,22 @@ private fun DangerousAppsPackageRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         WrapSafeText(
             text = item.appName,
-            style = DuckTypography.CalloutEmphasized,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurface,
         )
         WrapSafeText(
             text = item.packageName,
-            style = DuckTypography.Footnote.copy(fontFamily = FontFamily.Monospace),
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         FlowRow(
-            modifier = Modifier.padding(top = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item.methods.forEach { method ->
                 DangerousAppsMethodChip(label = method)
@@ -120,27 +125,37 @@ internal fun DangerousAppsMethodChip(
     label: String,
     warningTone: Boolean = false,
 ) {
-    val critical = DuckTheme.palette.critical
-    val containerColor = if (warningTone) critical.copy(alpha = 0.12f) else DuckTheme.palette.groupedInset
-    val iconTint = if (warningTone) critical else MaterialTheme.colorScheme.primary
+    val containerColor = if (warningTone) {
+        MaterialTheme.colorScheme.error.copy(alpha = 0.08f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHighest
+    }
+    val iconTint = if (warningTone) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
 
-    Row(
-        modifier = Modifier
-            .background(color = containerColor, shape = ShapeTokens.CornerFull)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    Surface(
+        color = containerColor,
+        shape = ShapeTokens.CornerFull,
     ) {
-        Icon(
-            imageVector = Icons.Rounded.Search,
-            contentDescription = null,
-            tint = iconTint,
-            modifier = Modifier.size(13.dp),
-        )
-        WrapSafeText(
-            text = label,
-            style = DuckTypography.Caption.copy(fontFamily = FontFamily.Monospace),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Search,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(14.dp),
+            )
+            WrapSafeText(
+                text = label,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }

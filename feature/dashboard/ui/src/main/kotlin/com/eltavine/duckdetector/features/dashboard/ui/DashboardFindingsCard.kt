@@ -16,54 +16,46 @@
 
 package com.eltavine.duckdetector.features.dashboard.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
-import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
-import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.evidence.DetectionSeverity
-import com.eltavine.duckdetector.core.evidence.DetectorStatus
-import com.eltavine.duckdetector.core.ui.components.DetectorHairline
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
+import com.eltavine.duckdetector.core.ui.theme.ShapeTokens
 import com.eltavine.duckdetector.features.dashboard.presentation.model.DashboardFindingModel
-
-private val FindingInset = 18.dp
 
 @Composable
 internal fun DashboardFindingsCard(
     findings: List<DashboardFindingModel>,
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+    Surface(
+        shape = ShapeTokens.CornerExtraLargeIncreased,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        DashboardFindingsHeader(findings = findings)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    color = DuckTheme.palette.groupedSurface,
-                    shape = ShapeTokens.CornerExtraLargeIncreased,
-                ),
+                .padding(horizontal = 18.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            findings.forEachIndexed { index, finding ->
-                DashboardFindingRow(finding = finding)
-                if (index < findings.lastIndex) {
-                    DetectorHairline(startInset = FindingInset)
+            DashboardFindingsHeader(findings = findings)
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                findings.forEach { finding ->
+                    DashboardFindingRow(finding = finding)
                 }
             }
         }
@@ -74,45 +66,57 @@ internal fun DashboardFindingsCard(
 private fun DashboardFindingsHeader(
     findings: List<DashboardFindingModel>,
 ) {
-    val headerStatus = findings.firstOrNull()?.status ?: DetectorStatus.allClear()
+    val headerStatus = findings.firstOrNull()?.status
+        ?: com.eltavine.duckdetector.core.evidence.DetectorStatus.allClear()
     val appearance = rememberStatusAppearance(headerStatus)
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Icon(
-            imageVector = appearance.icon,
-            contentDescription = null,
-            tint = appearance.iconTint,
-            modifier = Modifier.size(22.dp),
-        )
+        Surface(
+            shape = ShapeTokens.CornerLargeIncreased,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .padding(10.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = appearance.icon,
+                    contentDescription = null,
+                    tint = appearance.iconTint,
+                )
+            }
+        }
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .semantics(mergeDescendants = true) { heading() },
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             WrapSafeText(
                 text = "Top findings",
-                style = DuckTypography.Title3,
+                style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             WrapSafeText(
                 text = "Priority review queue",
-                style = DuckTypography.Footnote,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        WrapSafeText(
-            text = findings.size.toString(),
-            modifier = Modifier
-                .background(color = DuckTheme.palette.groupedSurface, shape = ShapeTokens.CornerFull)
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-            style = DuckTypography.CalloutEmphasized.copy(fontFeatureSettings = "tnum"),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        Surface(
+            shape = ShapeTokens.CornerLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ) {
+            WrapSafeText(
+                text = findings.size.toString(),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }
 
@@ -121,50 +125,79 @@ private fun DashboardFindingRow(
     finding: DashboardFindingModel,
 ) {
     val appearance = rememberStatusAppearance(finding.status)
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = FindingInset, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+    Surface(
+        shape = ShapeTokens.CornerLargeIncreased,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Icon(
-                imageVector = appearance.icon,
-                contentDescription = null,
-                tint = appearance.iconTint,
-                modifier = Modifier.size(16.dp),
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = appearance.iconTint.copy(alpha = 0.14f),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(30.dp)
+                                .padding(7.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = appearance.icon,
+                                contentDescription = null,
+                                tint = appearance.iconTint,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
+                    }
+                    WrapSafeText(
+                        text = finding.detectorTitle,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Surface(
+                    shape = ShapeTokens.CornerLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                ) {
+                    WrapSafeText(
+                        text = findingSeverityLabel(finding),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = appearance.iconTint,
+                    )
+                }
+            }
             WrapSafeText(
-                text = finding.detectorTitle,
-                modifier = Modifier.weight(1f),
-                style = DuckTypography.FootnoteEmphasized,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            WrapSafeText(
-                text = findingSeverityLabel(finding),
-                modifier = Modifier
-                    .background(color = appearance.tintWash, shape = ShapeTokens.CornerFull)
-                    .padding(horizontal = 10.dp, vertical = 3.dp),
-                style = DuckTypography.Caption,
+                text = finding.headline,
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.42f),
+                thickness = 1.dp,
+            )
+            WrapSafeText(
+                text = finding.detail,
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        WrapSafeText(
-            text = finding.headline,
-            modifier = Modifier.fillMaxWidth(),
-            style = DuckTypography.Headline,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        WrapSafeText(
-            text = finding.detail,
-            modifier = Modifier.fillMaxWidth(),
-            style = DuckTypography.Footnote,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 

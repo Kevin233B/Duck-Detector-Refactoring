@@ -20,27 +20,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import com.eltavine.duckdetector.R
-import com.eltavine.duckdetector.core.designsystem.components.DuckButtonDefaults
-import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
-import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
-import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.evidence.DetectionSeverity
 import com.eltavine.duckdetector.core.evidence.DetectorStatus
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
+import com.eltavine.duckdetector.core.evidence.DetectorId
+import com.eltavine.duckdetector.core.scan.DetectorSummary
 import com.eltavine.duckdetector.features.dashboard.presentation.model.DashboardOverviewModel
 import kotlinx.coroutines.delay
 
@@ -76,6 +75,22 @@ internal fun detectorResultNoticeKey(overview: DashboardOverviewModel): String {
     ).joinToString("|")
 }
 
+internal fun attentionDetectorIds(
+    contributions: List<DetectorSummary>,
+): Set<DetectorId> {
+    return contributions
+        .filter { contribution ->
+            contribution.ready && when (contribution.status.severity) {
+                DetectionSeverity.DANGER,
+                DetectionSeverity.WARNING -> true
+
+                DetectionSeverity.INFO,
+                DetectionSeverity.ALL_CLEAR -> false
+            }
+        }
+        .mapTo(linkedSetOf()) { contribution -> contribution.id }
+}
+
 @Composable
 fun DetectorResultNoticeDialog(
     onDismiss: () -> Unit,
@@ -100,45 +115,38 @@ fun DetectorResultNoticeDialog(
             dismissOnBackPress = canDismiss,
             dismissOnClickOutside = canDismiss,
         ),
-        shape = ShapeTokens.CornerExtraLargeIncreased,
-        containerColor = DuckTheme.palette.groupedSurface,
         title = {
             WrapSafeText(
                 text = stringResource(R.string.detector_result_title),
-                modifier = Modifier.fillMaxWidth(),
-                style = DuckTypography.Title3,
+                style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
             )
         },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 WrapSafeText(
                     text = stringResource(R.string.detector_result_notice),
                     modifier = Modifier.fillMaxWidth(),
-                    style = DuckTypography.Headline,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
                 )
                 WrapSafeText(
                     text = stringResource(R.string.detector_result_detail),
                     modifier = Modifier.fillMaxWidth(),
-                    style = DuckTypography.Callout,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
             }
         },
         confirmButton = {
-            Button(
+            TextButton(
                 onClick = onDismiss,
                 enabled = canDismiss,
-                modifier = Modifier.fillMaxWidth(),
-                colors = DuckButtonDefaults.tintedColors(),
-                contentPadding = DuckButtonDefaults.LargeContentPadding,
             ) {
                 WrapSafeText(
                     text = if (canDismiss) {
@@ -146,7 +154,7 @@ fun DetectorResultNoticeDialog(
                     } else {
                         stringResource(R.string.dialog_continue_waiting, secondsRemaining)
                     },
-                    style = DuckTypography.Headline,
+                    style = MaterialTheme.typography.labelLarge,
                 )
             }
         },

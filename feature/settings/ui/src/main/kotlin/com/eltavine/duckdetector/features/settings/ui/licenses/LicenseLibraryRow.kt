@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -34,8 +35,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
-import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.util.author
@@ -50,10 +49,10 @@ internal fun LazyItemScope.LicenseLibraryRow(
             .animateItem()
             .padding(vertical = 4.dp)
             .fillMaxWidth()
-            .clip(ShapeTokens.CornerLargeIncreased)
+            .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick),
-        shape = ShapeTokens.CornerLargeIncreased,
-        color = DuckTheme.palette.groupedSurface,
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(
             modifier = Modifier
@@ -93,7 +92,7 @@ internal fun LazyItemScope.LicenseLibraryRow(
                         Surface(
                             modifier = Modifier.padding(start = 8.dp),
                             shape = CircleShape,
-                            color = DuckTheme.palette.groupedInset,
+                            color = MaterialTheme.colorScheme.surfaceContainerLow,
                         ) {
                             WrapSafeText(
                                 text = version,

@@ -53,8 +53,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
+import com.eltavine.duckdetector.core.ui.theme.ShapeTokens
 import com.eltavine.duckdetector.features.settings.ui.R
 import kotlin.math.min
 
@@ -81,10 +81,7 @@ fun ContributorNameWordmark(modifier: Modifier = Modifier) {
     var viewport by remember { mutableStateOf(IntSize.Zero) }
     var zoom by rememberSaveable { mutableFloatStateOf(1f) }
     var offset by rememberSaveable(stateSaver = WordmarkOffsetSaver) { mutableStateOf(Offset.Zero) }
-    val characterColor = MaterialTheme.colorScheme.onSurface.toArgb()
-    val characterPaint = remember(characterColor) {
-        Paint(Paint.ANTI_ALIAS_FLAG).apply { color = characterColor }
-    }
+    val characterColor = MaterialTheme.colorScheme.primary.toArgb()
 
     LaunchedEffect(viewport) {
         offset = constrainWallOffset(offset, wordmarkPanLimit(viewport, zoom))
@@ -106,8 +103,15 @@ fun ContributorNameWordmark(modifier: Modifier = Modifier) {
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        WrapSafeText(
+            text = stringResource(R.string.author_wordmark_hint),
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
@@ -125,16 +129,9 @@ fun ContributorNameWordmark(modifier: Modifier = Modifier) {
             canvas.translate(size.width / 2f + offset.x, size.height / 2f + offset.y)
             canvas.scale(scale, scale)
             canvas.translate(-WordmarkWidth / 2f, -WordmarkHeight / 2f)
-            canvas.drawPath(layout.characters, characterPaint)
+            canvas.drawPath(layout.characters, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = characterColor })
             canvas.restore()
         }
-        WrapSafeText(
-            text = stringResource(R.string.author_wordmark_hint),
-            modifier = Modifier.fillMaxWidth(),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
     }
 }
 
