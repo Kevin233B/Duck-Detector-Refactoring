@@ -82,6 +82,7 @@
             ":core:report",
             ":core:scan",
             ":core:detector",
+            ":core:designsystem",
             ":core:ui",
             ":capability:*:domain"
           ]
@@ -124,6 +125,7 @@
       "androidx.activity:activity-compose",
       "androidx.lifecycle:lifecycle-*-compose",
       "androidx.browser:browser",
+      "androidx.graphics:graphics-shapes*",
       "br.com.devsrsouza.compose.icons:*",
       "com.google.android.material:material",
       "com.mikepenz:aboutlibraries-compose*"
@@ -138,6 +140,11 @@
         ":feature:*:*",
         ":sdk:*"
       ]
+    },
+    ":core:designsystem": {
+      "kind": "android-library",
+      "ui": true,
+      "allowed_project_dependencies": []
     },
     ":core:detector": {
       "kind": "android-library",
@@ -185,6 +192,7 @@
       "kind": "android-library",
       "ui": true,
       "allowed_project_dependencies": [
+        ":core:designsystem",
         ":core:detector",
         ":core:evidence",
         ":core:report",
