@@ -524,6 +524,7 @@ jobs:
         env:
           AAR_NAME: ${{ steps.assets.outputs.aar_name }}
           APK_NAME: ${{ steps.assets.outputs.apk_name }}
+          GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_NAME: ${{ steps.release_target.outputs.release_name }}
           TAG_NAME: ${{ steps.release_target.outputs.tag_name }}
