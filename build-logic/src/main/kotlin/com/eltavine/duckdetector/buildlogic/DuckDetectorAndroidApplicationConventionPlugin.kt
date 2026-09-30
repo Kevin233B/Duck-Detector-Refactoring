@@ -24,7 +24,7 @@ import org.gradle.kotlin.dsl.configure
 
 private const val VERSION_CODE_BASE = 300
 private const val VERSION_NAME_ZONE_ID = "Asia/Singapore"
-private const val isAlphaVersion = true
+private const val isAlphaVersion = false
 
 class DuckDetectorAndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
