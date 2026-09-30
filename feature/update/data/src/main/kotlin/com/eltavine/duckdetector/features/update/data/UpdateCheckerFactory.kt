@@ -17,13 +17,25 @@
 package com.eltavine.duckdetector.features.update.data
 
 import android.content.Context
-import com.eltavine.duckdetector.features.update.domain.NightlyUpdateChecker
+import com.eltavine.duckdetector.features.update.domain.UpdateChannel
+import com.eltavine.duckdetector.features.update.domain.UpdateChannelPreference
+import com.eltavine.duckdetector.features.update.domain.UpdateChecker
 import kotlinx.coroutines.flow.first
 
-fun createNightlyUpdateChecker(appContext: Context): NightlyUpdateChecker {
+fun createUpdateChecker(appContext: Context): UpdateChecker {
     val accelerationStore = GitHubAccelerationStore.getInstance(appContext)
     return UpdateRepository(
         cache = UpdateCacheStore.getInstance(appContext),
         currentRoute = { GitHubRoute.of(accelerationStore.acceleration.first()) },
     )
+}
+
+/** [buildChannel] is the channel the running build was published on, followed until the user picks. */
+fun createUpdateChannelPreference(appContext: Context, buildChannel: UpdateChannel): UpdateChannelPreference {
+    val store = UpdateChannelStore.getInstance(appContext)
+    return object : UpdateChannelPreference {
+        override suspend fun read(): UpdateChannel = store.read() ?: buildChannel
+
+        override suspend fun write(channel: UpdateChannel) = store.write(channel)
+    }
 }

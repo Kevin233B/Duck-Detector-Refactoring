@@ -16,11 +16,23 @@
 
 package com.eltavine.duckdetector.features.update.domain
 
-import com.eltavine.duckdetector.features.update.domain.UpdateCheckResult
+/**
+ * Stable follows the tagged releases and Nightly every change to main. [id] is how update.json and
+ * the build's BUILD_CHANNEL name the channel.
+ */
+enum class UpdateChannel(val id: String) {
+    STABLE("stable"),
+    NIGHTLY("nightly"),
+    ;
 
-fun interface NightlyUpdateChecker {
-    suspend fun check(
-        currentVersionCode: Int,
-        currentCommitSha: String,
-    ): UpdateCheckResult
+    companion object {
+        fun fromId(id: String): UpdateChannel? = entries.firstOrNull { channel -> channel.id == id }
+    }
+}
+
+/** The channel the user follows. Until they choose one it is the channel their build came from. */
+interface UpdateChannelPreference {
+    suspend fun read(): UpdateChannel
+
+    suspend fun write(channel: UpdateChannel)
 }

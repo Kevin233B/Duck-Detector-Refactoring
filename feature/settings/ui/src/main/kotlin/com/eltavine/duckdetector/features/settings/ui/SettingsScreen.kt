@@ -63,6 +63,7 @@ import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
 import com.eltavine.duckdetector.core.designsystem.theme.MotionTokens
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.features.settings.presentation.model.SettingsUiState
+import com.eltavine.duckdetector.features.settings.presentation.model.SettingsUpdateChannel
 import com.eltavine.duckdetector.features.settings.ui.components.AboutSection
 import com.eltavine.duckdetector.features.settings.ui.components.ConsentSettingItem
 import com.eltavine.duckdetector.features.settings.ui.components.ContributorNameWordmark
@@ -82,6 +83,7 @@ private val PageSlide = spring(
 fun SettingsScreen(
     uiState: SettingsUiState,
     consentToggles: List<ConsentToggle>,
+    onUpdateChannelChange: (SettingsUpdateChannel) -> Unit,
     onCheckForUpdates: () -> Unit,
     onGitHubAccelerationChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -109,6 +111,7 @@ fun SettingsScreen(
                 SettingsPage(
                     uiState = uiState,
                     consentToggles = consentToggles,
+                    onUpdateChannelChange = onUpdateChannelChange,
                     onCheckForUpdates = onCheckForUpdates,
                     onGitHubAccelerationChange = onGitHubAccelerationChange,
                     onOpenLicenses = { showingLicenses = true },
@@ -130,6 +133,7 @@ private fun AnimatedContentTransitionScope<Boolean>.pageTransition(): ContentTra
 private fun SettingsPage(
     uiState: SettingsUiState,
     consentToggles: List<ConsentToggle>,
+    onUpdateChannelChange: (SettingsUpdateChannel) -> Unit,
     onCheckForUpdates: () -> Unit,
     onGitHubAccelerationChange: (Boolean) -> Unit,
     onOpenLicenses: () -> Unit,
@@ -181,6 +185,7 @@ private fun SettingsPage(
 
                 AboutSection(
                     uiState = uiState,
+                    onUpdateChannelChange = onUpdateChannelChange,
                     onCheckForUpdates = onCheckForUpdates,
                     onOpenLicenses = onOpenLicenses,
                 )
