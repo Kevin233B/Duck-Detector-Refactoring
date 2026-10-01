@@ -27,19 +27,39 @@ public class SelinuxContextValidityPreload {
     private val procAttrCurrentProbe = SelinuxProcAttrCurrentProbe()
     private val policyloadSeqnoProbe = SelinuxPolicyloadSeqnoProbe()
 
-    public fun preload(appInfo: ApplicationInfo, beforeCollection: () -> Unit) {
+    /**
+     * Captures the carrier evidence in the app zygote. [trace] is called before each step, so an
+     * app zygote that is killed partway through still leaves a record of the step it had reached.
+     */
+    public fun preload(
+        appInfo: ApplicationInfo,
+        trace: (step: String) -> Unit = {},
+        beforeCollection: () -> Unit,
+    ) {
         val payload = try {
             beforeCollection()
             val currentUid = Os.getuid()
-            val baseSnapshot = collectBaseSnapshot(currentUid, appInfo.uid)
+            val baseSnapshot = collectBaseSnapshot(currentUid, appInfo.uid, trace)
+            var dirtyPolicyTraced = false
             val snapshot = augmentPreloadSnapshot(
                 baseSnapshot = baseSnapshot,
                 currentUid = currentUid,
                 appUid = appInfo.uid,
                 isUserBuild = Build.TYPE == "user",
-                inspectProcAttrCurrent = procAttrCurrentProbe::inspect,
-                inspectPolicyloadSeqno = policyloadSeqnoProbe::inspect,
-                checkAccess = ::checkSelinuxAccess,
+                inspectProcAttrCurrent = {
+                    procAttrCurrentProbe.inspect { context -> trace("selinux: proc attr current write $context") }
+                },
+                inspectPolicyloadSeqno = {
+                    trace("selinux: policyload seqno")
+                    policyloadSeqnoProbe.inspect()
+                },
+                checkAccess = { source, target, targetClass, permission ->
+                    if (!dirtyPolicyTraced) {
+                        dirtyPolicyTraced = true
+                        trace("selinux: java dirty policy checks")
+                    }
+                    checkSelinuxAccess(source, target, targetClass, permission)
+                },
             )
             SelinuxContextValidityPayloadCodec.encode(snapshot)
         } catch (throwable: Throwable) {
@@ -59,11 +79,14 @@ public class SelinuxContextValidityPreload {
     private fun collectBaseSnapshot(
         currentUid: Int,
         appUid: Int,
+        trace: (step: String) -> Unit,
     ): SelinuxContextValiditySnapshot {
         if (currentUid != appUid) {
             return fallbackSnapshot("UID mismatch: $currentUid != app uid $appUid.")
         }
+        trace("selinux: native context oracle")
         val nativeSnapshot = collectNativeCarrierSnapshot()
+        trace("selinux: java carrier checks")
         val javaCarrierSnapshot = collectJavaCarrierSnapshot(currentUid, appUid)
         return mergeCarrierSelfCheckSnapshot(
             nativeSnapshot = nativeSnapshot,
