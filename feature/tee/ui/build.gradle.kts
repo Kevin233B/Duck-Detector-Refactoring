@@ -24,6 +24,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.uihelper)
+    implementation(libs.miuix.ui)
     implementation(project(":capability:attestation:domain"))
     api(project(":core:detector"))
     implementation(project(":core:evidence"))

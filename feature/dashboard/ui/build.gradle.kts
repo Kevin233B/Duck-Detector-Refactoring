@@ -24,6 +24,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.uihelper)
+    implementation(libs.miuix.ui)
     implementation(project(":core:evidence"))
     implementation(project(":core:report"))
     api(project(":core:ui"))

@@ -28,15 +28,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -45,9 +49,16 @@ import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
 import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
+import io.github.xiaotong6666.uihelper.adaptive.SettingsGroupHeader
+import io.github.xiaotong6666.uihelper.mode.LocalUiMode
+import io.github.xiaotong6666.uihelper.mode.UiMode
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** Horizontal inset of row content, which section titles and footnotes align with. */
-private val SettingsItemInset = 18.dp
+/** Align M3E segmented items with KSU / InstallerX's native 16dp row inset. */
+private val SettingsItemInset = 16.dp
 
 private val SettingsItemPadding = PaddingValues(horizontal = SettingsItemInset, vertical = 14.dp)
 
@@ -60,9 +71,26 @@ internal fun SettingsSection(
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(if (LocalUiMode.current == UiMode.Miuix) 2.dp else 10.dp),
     ) {
-        Row(
+        if (LocalUiMode.current == UiMode.Miuix) {
+            // The counter must not switch this header back to the Material title row.
+            // SmallTitle supplies the same 28dp/8dp inset as About and leaves room
+            // below the heading before the contributor wall starts.
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SettingsGroupHeader(text = title)
+                if (badge != null) {
+                    WrapSafeText(
+                        text = badge,
+                        modifier = Modifier
+                            .background(color = MiuixTheme.colorScheme.surfaceContainer, shape = ShapeTokens.CornerFull)
+                            .padding(horizontal = 8.dp, vertical = 1.dp),
+                        style = MiuixTheme.textStyles.footnote1.copy(fontFeatureSettings = "tnum"),
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
+            }
+        } else Row(
             modifier = Modifier.padding(horizontal = SettingsItemInset),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -70,8 +98,8 @@ internal fun SettingsSection(
             WrapSafeText(
                 text = title,
                 modifier = Modifier.semantics { heading() },
-                style = DuckTypography.FootnoteEmphasized,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
             )
             if (badge != null) {
                 WrapSafeText(
@@ -91,11 +119,18 @@ internal fun SettingsSection(
 /** Rows that read as one block: separated by the segmented gap and shaped by [settingsItemShapes]. */
 @Composable
 internal fun SettingsGroup(content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
-        content = content,
-    )
+    if (LocalUiMode.current == UiMode.Miuix) {
+        // One native container for the whole section, with full-bleed preference rows.
+        MiuixCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(0.dp)) {
+            Column(modifier = Modifier.fillMaxWidth(), content = content)
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            content = content,
+        )
+    }
 }
 
 @Composable
@@ -110,8 +145,42 @@ internal fun SettingsItem(
     supportingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
+    if (LocalUiMode.current == UiMode.Miuix) {
+        BasicComponent(
+            modifier = modifier,
+            startAction = leadingContent,
+            endActions = trailingContent?.let { trailing -> { trailing() } },
+            onClick = onClick,
+            enabled = enabled,
+            insideMargin = SettingsItemPadding,
+        ) {
+            MiuixText(
+                text = headline,
+                style = MiuixTheme.textStyles.headline1,
+                color = MiuixTheme.colorScheme.onSurface,
+            )
+            CompositionLocalProvider(
+                LocalTextStyle provides MiuixTheme.textStyles.body2,
+                LocalContentColor provides MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            ) {
+                supportingContent?.invoke()
+            }
+        }
+        return
+    }
+    // Native trailingContent reserves its width for the *entire* text column,
+    // including supporting text. Controls in the headline row let subtitles
+    // extend underneath the switch/dropdown and place the control too high.
     val headlineContent: @Composable () -> Unit = {
-        WrapSafeText(text = headline, style = DuckTypography.Body)
+        WrapSafeText(text = headline, style = MaterialTheme.typography.bodyLargeEmphasized)
+    }
+    val materialSupporting: (@Composable () -> Unit)? = supportingContent?.let { supporting ->
+        {
+            CompositionLocalProvider(
+                LocalTextStyle provides MaterialTheme.typography.bodyMedium,
+                LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant,
+            ) { supporting() }
+        }
     }
     if (onClick == null) {
         SegmentedListItem(
@@ -120,7 +189,8 @@ internal fun SettingsItem(
             enabled = enabled,
             leadingContent = leadingContent,
             trailingContent = trailingContent,
-            supportingContent = supportingContent,
+            verticalAlignment = Alignment.CenterVertically,
+            supportingContent = materialSupporting,
             colors = colors,
             contentPadding = SettingsItemPadding,
             content = headlineContent,
@@ -133,7 +203,8 @@ internal fun SettingsItem(
             enabled = enabled,
             leadingContent = leadingContent,
             trailingContent = trailingContent,
-            supportingContent = supportingContent,
+            verticalAlignment = Alignment.CenterVertically,
+            supportingContent = materialSupporting,
             colors = colors,
             contentPadding = SettingsItemPadding,
             content = headlineContent,
@@ -163,22 +234,33 @@ internal fun settingsItemColors(
 @Composable
 internal fun SettingsIconTile(
     icon: ImageVector,
-    tint: Color = MaterialTheme.colorScheme.primary,
+    tint: Color = if (LocalUiMode.current == UiMode.Miuix) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
     SettingsIconTile {
         Icon(imageVector = icon, contentDescription = null, tint = tint)
     }
 }
 
+/** About-section glyphs follow the MIUIX color scheme, independently of status-label colors. */
+@Composable
+internal fun AboutLeadingIcon(icon: ImageVector) {
+    SettingsIconTile(
+        icon = icon,
+        tint = if (LocalUiMode.current == UiMode.Miuix) aboutMiuixIconColor() else MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+internal fun aboutMiuixIconColor(): Color =
+    if (MiuixTheme.colorScheme.background.luminance() < 0.5f) Color.White else Color.Black
+
 @Composable
 internal fun SettingsIconTile(
-    containerColor: Color = DuckTheme.palette.groupedInset,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
-        modifier = Modifier
-            .size(40.dp)
-            .background(color = containerColor, shape = ShapeTokens.CornerMedium),
+        modifier = Modifier.size(28.dp),
         contentAlignment = Alignment.Center,
         content = content,
     )
@@ -194,7 +276,8 @@ internal fun SettingsFootnote(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = SettingsItemInset),
+            .padding(horizontal = SettingsItemInset)
+            .padding(top = if (LocalUiMode.current == UiMode.Miuix) 6.dp else 0.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (icon != null) {
@@ -211,14 +294,14 @@ internal fun SettingsFootnote(
             if (title != null) {
                 WrapSafeText(
                     text = title,
-                    style = DuckTypography.FootnoteEmphasized,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = if (LocalUiMode.current == UiMode.Miuix) MiuixTheme.textStyles.footnote1 else DuckTypography.FootnoteEmphasized,
+                    color = if (LocalUiMode.current == UiMode.Miuix) MiuixTheme.colorScheme.onSurfaceVariantSummary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             WrapSafeText(
                 text = text,
-                style = DuckTypography.Footnote,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = if (LocalUiMode.current == UiMode.Miuix) MiuixTheme.textStyles.footnote2 else DuckTypography.Footnote,
+                color = if (LocalUiMode.current == UiMode.Miuix) MiuixTheme.colorScheme.onSurfaceVariantSummary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

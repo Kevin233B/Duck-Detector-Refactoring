@@ -102,11 +102,7 @@ internal fun TeeCertificateNode(
             }
         }
 
-        Surface(
-            modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            shape = ShapeTokens.CornerExtraLarge,
-        ) {
+        TeeDialogSurface(tone = TeeDialogTone.Low, modifier = Modifier.weight(1f)) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -196,10 +192,7 @@ private fun TeeCertificateGroup(
     icon: ImageVector,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = ShapeTokens.CornerLargeIncreased,
-    ) {
+    TeeDialogSurface(tone = TeeDialogTone.High, cornerRadius = 12.dp) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -210,10 +203,7 @@ private fun TeeCertificateGroup(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    shape = ShapeTokens.CornerLarge,
-                ) {
+                TeeDialogSurface(tone = TeeDialogTone.Highest, cornerRadius = 12.dp) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
@@ -248,10 +238,7 @@ private fun TeeCertificateField(
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            shape = ShapeTokens.CornerLarge,
-        ) {
+        TeeDialogSurface(tone = TeeDialogTone.Highest, cornerRadius = 12.dp) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,

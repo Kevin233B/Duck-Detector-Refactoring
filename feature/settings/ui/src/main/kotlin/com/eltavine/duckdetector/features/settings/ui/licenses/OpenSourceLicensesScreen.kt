@@ -16,27 +16,22 @@
 
 package com.eltavine.duckdetector.features.settings.ui.licenses
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Verified
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,23 +43,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
-import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.features.settings.ui.R
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
+import io.github.xiaotong6666.uihelper.chrome.DetailPageHost
+import io.github.xiaotong6666.uihelper.mode.LocalUiMode
+import io.github.xiaotong6666.uihelper.mode.UiMode
 import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.m3.chipColors
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
+import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator as MiuixCircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun OpenSourceLicensesScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BackHandler(onBack = onBack)
     val resources = LocalResources.current
     val libraries by produceLibraries {
         AboutLibrariesJsonOverrides.apply(
@@ -75,163 +75,183 @@ fun OpenSourceLicensesScreen(
         )
     }
     val libraryCount = libraries?.libraries?.size
+    val miuixLibraries = remember(libraries) { libraries?.libraries?.sortedBy { it.name.lowercase() }.orEmpty() }
     var selectedLibrary by remember { mutableStateOf<Library?>(null) }
+    var presentedLibrary by remember { mutableStateOf<Library?>(null) }
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(DuckTheme.palette.groupedBackground),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+    if (LocalUiMode.current == UiMode.Miuix) {
+        DetailPageHost(
+            title = stringResource(R.string.licenses_screen_title),
+            subtitle = stringResource(R.string.licenses_screen_subtitle),
+            onBack = onBack,
+        ) { contentPadding, pageModifier ->
+            Column(
+                modifier = pageModifier.fillMaxSize().padding(contentPadding).padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = stringResource(R.string.licenses_screen_back),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                MiuixCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    insideMargin = PaddingValues(16.dp),
                 ) {
-                    WrapSafeText(
-                        text = stringResource(R.string.licenses_screen_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    WrapSafeText(
-                        text = stringResource(R.string.licenses_screen_subtitle),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        MiuixIcon(
+                            imageVector = Icons.Rounded.Verified,
+                            contentDescription = null,
+                            tint = MiuixTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp),
+                        )
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            MiuixText(
+                                text = stringResource(R.string.licenses_inventory_title),
+                                style = MiuixTheme.textStyles.headline1,
+                                color = MiuixTheme.colorScheme.onSurface,
+                            )
+                            MiuixText(
+                                text = stringResource(R.string.licenses_inventory_subtitle),
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            )
+                        }
+                        MiuixText(
+                            text = libraryCount?.toString() ?: "…",
+                            style = MiuixTheme.textStyles.headline1,
+                            color = MiuixTheme.colorScheme.primary,
+                        )
+                    }
                 }
-
-                Surface(
-                    shape = ShapeTokens.CornerMedium,
-                    color = DuckTheme.palette.groupedSurface,
-                ) {
+                if (libraries == null) {
                     Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .padding(10.dp),
+                        modifier = Modifier.fillMaxWidth().weight(1f),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Description,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
+                        MiuixCircularProgressIndicator()
                     }
-                }
-            }
-
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                shape = ShapeTokens.CornerExtraLargeIncreased,
-                color = DuckTheme.palette.groupedSurface,
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 18.dp, vertical = 18.dp),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = DuckTheme.palette.groupedInset,
+                } else {
+                    // AboutLibraries' M3 container paints an unshaped common surface underneath
+                    // the custom rows. Native MIUIX list items must own their own squircle edge.
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        contentPadding = PaddingValues(bottom = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(42.dp)
-                                .padding(10.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Verified,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        WrapSafeText(
-                            text = stringResource(R.string.licenses_inventory_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        WrapSafeText(
-                            text = stringResource(R.string.licenses_inventory_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-
-                    Surface(
-                        shape = ShapeTokens.CornerMedium,
-                        color = DuckTheme.palette.groupedInset,
-                    ) {
-                        Box(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            WrapSafeText(
-                                text = libraryCount?.toString() ?: "...",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
+                        items(count = miuixLibraries.size) { index ->
+                            val library = miuixLibraries[index]
+                            LicenseLibraryRow(
+                                library = library,
+                                onClick = {
+                                    presentedLibrary = library
+                                    selectedLibrary = library
+                                },
                             )
                         }
                     }
                 }
             }
-
-            LibrariesContainer(
-                libraries = libraries,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentPadding = PaddingValues(vertical = 2.dp),
-                colors = LibraryDefaults.libraryColors(
-                    libraryBackgroundColor = DuckTheme.palette.groupedBackground,
-                    libraryContentColor = MaterialTheme.colorScheme.onSurface,
-                    licenseChipColors = LibraryDefaults.chipColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    ),
-                ),
-                onLibraryClick = { library ->
-                    selectedLibrary = library
-                    true
-                },
-                libraryRow = { _, library, _, toggle, _ ->
-                    LicenseLibraryRow(
-                        library = library,
-                        onClick = toggle,
-                    )
+        }
+        (selectedLibrary ?: presentedLibrary)?.let { library ->
+            LicenseDetailsDialog(
+                show = selectedLibrary != null,
+                library = library,
+                onDismiss = { selectedLibrary = null },
+                onDismissFinished = {
+                    if (selectedLibrary == null) presentedLibrary = null
                 },
             )
+        }
+        return
+    }
+
+    // Same native M3E large collapsing bar as KSU/InstallerX; the app's DuckNavHost
+    // remains the sole route owner, and DetailPageHost is only visual chrome.
+    Box(modifier = modifier.fillMaxSize()) {
+        DetailPageHost(
+            title = stringResource(R.string.licenses_screen_title),
+            subtitle = stringResource(R.string.licenses_screen_subtitle),
+            onBack = onBack,
+        ) { contentPadding, pageModifier ->
+            Column(
+                modifier = pageModifier
+                    .fillMaxSize()
+                    .padding(contentPadding)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceBright,
+                    ),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(18.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Verified,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp),
+                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            WrapSafeText(
+                                text = stringResource(R.string.licenses_inventory_title),
+                                style = MaterialTheme.typography.titleMediumEmphasized,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            WrapSafeText(
+                                text = stringResource(R.string.licenses_inventory_subtitle),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Surface(
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                        ) {
+                            WrapSafeText(
+                                text = libraryCount?.toString() ?: "…",
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            )
+                        }
+                    }
+                }
+
+                LibrariesContainer(
+                    libraries = libraries,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    contentPadding = PaddingValues(vertical = 2.dp),
+                    colors = LibraryDefaults.libraryColors(
+                        libraryBackgroundColor = MaterialTheme.colorScheme.surfaceContainer,
+                        libraryContentColor = MaterialTheme.colorScheme.onSurface,
+                        licenseChipColors = LibraryDefaults.chipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
+                    ),
+                    onLibraryClick = { library ->
+                        selectedLibrary = library
+                        true
+                    },
+                    libraryRow = { _, library, _, toggle, _ ->
+                        LicenseLibraryRow(library = library, onClick = toggle)
+                    },
+                )
+            }
         }
     }
 
     selectedLibrary?.let { library ->
-        LicenseDetailsDialog(library = library, onDismiss = { selectedLibrary = null })
+        LicenseDetailsDialog(show = true, library = library, onDismiss = { selectedLibrary = null })
     }
 }

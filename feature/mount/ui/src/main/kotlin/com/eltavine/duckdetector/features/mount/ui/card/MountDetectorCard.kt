@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountTree
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.ui.components.DetectorCardFrame
 import com.eltavine.duckdetector.core.ui.components.DetectorDetailRowBlock
@@ -47,6 +49,7 @@ import com.eltavine.duckdetector.core.ui.components.DetectorFact
 import com.eltavine.duckdetector.core.ui.components.DetectorFactPair
 import com.eltavine.duckdetector.core.ui.components.DetectorHairline
 import com.eltavine.duckdetector.core.ui.components.DetectorSectionFrame
+import com.eltavine.duckdetector.core.ui.components.highestSectionSeverity
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.copyPlainTextToClipboard
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
@@ -80,6 +83,9 @@ internal fun MountDetectorCard(
                 title = "Isolated process mounts",
                 icon = Icons.Rounded.AccountTree,
                 rows = model.procMountViewRows,
+                showDivider = model.artifactRows.isNotEmpty() || model.runtimeRows.isNotEmpty() ||
+                    model.filesystemRows.isNotEmpty() || model.consistencyRows.isNotEmpty() ||
+                    model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -88,6 +94,9 @@ internal fun MountDetectorCard(
                 title = "Root artifacts",
                 icon = Icons.Rounded.FolderOpen,
                 rows = model.artifactRows,
+                showDivider = model.runtimeRows.isNotEmpty() || model.filesystemRows.isNotEmpty() ||
+                    model.consistencyRows.isNotEmpty() || model.impactItems.isNotEmpty() ||
+                    model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -96,6 +105,8 @@ internal fun MountDetectorCard(
                 title = "Runtime mounts",
                 icon = Icons.Rounded.Storage,
                 rows = model.runtimeRows,
+                showDivider = model.filesystemRows.isNotEmpty() || model.consistencyRows.isNotEmpty() ||
+                    model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -104,6 +115,8 @@ internal fun MountDetectorCard(
                 title = "Filesystem",
                 icon = Icons.Rounded.Memory,
                 rows = model.filesystemRows,
+                showDivider = model.consistencyRows.isNotEmpty() || model.impactItems.isNotEmpty() ||
+                    model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -112,6 +125,7 @@ internal fun MountDetectorCard(
                 title = "Namespace and consistency",
                 icon = Icons.Rounded.AccountTree,
                 rows = model.consistencyRows,
+                showDivider = model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -120,6 +134,7 @@ internal fun MountDetectorCard(
                 title = "Impact",
                 icon = Icons.Rounded.CrisisAlert,
                 items = model.impactItems,
+                showDivider = model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -128,6 +143,7 @@ internal fun MountDetectorCard(
                 title = "Detection methods",
                 icon = Icons.Rounded.Search,
                 rows = model.methodRows,
+                showDivider = model.scanRows.isNotEmpty(),
             )
         }
 
@@ -136,6 +152,7 @@ internal fun MountDetectorCard(
                 title = "Scan summary",
                 icon = Icons.Rounded.Info,
                 rows = model.scanRows,
+                showDivider = false,
             )
         }
     }
@@ -151,7 +168,7 @@ private fun MountCollapsedOverview(
     val native = model.headerFacts.firstOrNull { it.fact == MountHeaderFact.NATIVE } ?: return
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -189,10 +206,13 @@ private fun MountDetailSection(
     title: String,
     icon: ImageVector,
     rows: List<MountDetailRowModel>,
+    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
+        severity = highestSectionSeverity(rows.map { it.status }),
+        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
             rows.forEachIndexed { index, row ->
@@ -240,10 +260,13 @@ private fun MountImpactSection(
     title: String,
     icon: ImageVector,
     items: List<MountImpactItemModel>,
+    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
+        severity = highestSectionSeverity(items.map { it.status }),
+        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items.forEach { item ->

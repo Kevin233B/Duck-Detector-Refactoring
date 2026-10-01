@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
@@ -35,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.ui.components.DetectorCardFrame
 import com.eltavine.duckdetector.core.ui.components.DetectorDetailRowBlock
@@ -42,6 +44,7 @@ import com.eltavine.duckdetector.core.ui.components.DetectorFact
 import com.eltavine.duckdetector.core.ui.components.DetectorFactPair
 import com.eltavine.duckdetector.core.ui.components.DetectorHairline
 import com.eltavine.duckdetector.core.ui.components.DetectorSectionFrame
+import com.eltavine.duckdetector.core.ui.components.highestSectionSeverity
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
 import com.eltavine.duckdetector.features.selinux.presentation.model.SelinuxCardModel
@@ -71,6 +74,10 @@ internal fun SelinuxDetectorCard(
                 title = "Security state",
                 icon = Icons.Rounded.AdminPanelSettings,
                 rows = model.stateRows,
+                showDivider = model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() ||
+                    model.policyRows.isNotEmpty() || model.policyNotes.isNotEmpty() ||
+                    model.auditRows.isNotEmpty() || model.auditNotes.isNotEmpty() ||
+                    model.deviceRows.isNotEmpty() || model.references.isNotEmpty(),
             )
         }
 
@@ -79,6 +86,9 @@ internal fun SelinuxDetectorCard(
                 title = "Impact",
                 icon = Icons.Rounded.CrisisAlert,
                 items = model.impactItems,
+                showDivider = model.methodRows.isNotEmpty() || model.policyRows.isNotEmpty() ||
+                    model.policyNotes.isNotEmpty() || model.auditRows.isNotEmpty() || model.auditNotes.isNotEmpty() ||
+                    model.deviceRows.isNotEmpty() || model.references.isNotEmpty(),
             )
         }
 
@@ -87,6 +97,9 @@ internal fun SelinuxDetectorCard(
                 title = "Detection methods",
                 icon = Icons.Rounded.Search,
                 rows = model.methodRows,
+                showDivider = model.policyRows.isNotEmpty() || model.policyNotes.isNotEmpty() ||
+                    model.auditRows.isNotEmpty() || model.auditNotes.isNotEmpty() ||
+                    model.deviceRows.isNotEmpty() || model.references.isNotEmpty(),
             )
         }
 
@@ -94,6 +107,11 @@ internal fun SelinuxDetectorCard(
             DetectorSectionFrame(
                 title = "Policy analysis",
                 icon = Icons.Rounded.Policy,
+                severity = highestSectionSeverity(
+                    model.policyRows.map { it.status } + model.policyNotes.map { it.status },
+                ),
+                showDivider = model.auditRows.isNotEmpty() || model.auditNotes.isNotEmpty() ||
+                    model.deviceRows.isNotEmpty() || model.references.isNotEmpty(),
             ) {
                 if (model.policyRows.isNotEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
@@ -123,6 +141,10 @@ internal fun SelinuxDetectorCard(
             DetectorSectionFrame(
                 title = "Audit integrity",
                 icon = Icons.AutoMirrored.Rounded.FactCheck,
+                severity = highestSectionSeverity(
+                    model.auditRows.map { it.status } + model.auditNotes.map { it.status },
+                ),
+                showDivider = model.deviceRows.isNotEmpty() || model.references.isNotEmpty(),
             ) {
                 if (model.auditRows.isNotEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
@@ -153,6 +175,7 @@ internal fun SelinuxDetectorCard(
                 title = "Device info",
                 icon = Icons.Rounded.Info,
                 rows = model.deviceRows,
+                showDivider = model.references.isNotEmpty(),
             )
         }
 
@@ -160,6 +183,7 @@ internal fun SelinuxDetectorCard(
             DetectorSectionFrame(
                 title = "Reference",
                 icon = Icons.AutoMirrored.Rounded.MenuBook,
+                showDivider = false,
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     model.references.forEach { reference ->
@@ -186,7 +210,7 @@ private fun SelinuxCollapsedOverview(
     val context = model.headerFacts.firstOrNull { it.fact == SelinuxHeaderFact.CONTEXT } ?: return
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -224,10 +248,13 @@ private fun SelinuxDetailSection(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     rows: List<SelinuxDetailRowModel>,
+    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
+        severity = highestSectionSeverity(rows.map { it.status }),
+        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
             rows.forEachIndexed { index, row ->
@@ -257,10 +284,13 @@ private fun SelinuxImpactSection(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     items: List<SelinuxImpactItemModel>,
+    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
+        severity = highestSectionSeverity(items.map { it.status }),
+        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items.forEach { item ->

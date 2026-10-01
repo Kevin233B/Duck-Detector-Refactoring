@@ -45,7 +45,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -57,21 +56,37 @@ import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.features.update.domain.AvailableNightlyUpdate
 import com.eltavine.duckdetector.features.update.ui.R
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-import java.util.Locale
+import io.github.xiaotong6666.uihelper.dialog.UpdatePromptChange
+import io.github.xiaotong6666.uihelper.dialog.UpdatePromptDialogMiuix
+import io.github.xiaotong6666.uihelper.dialog.UpdatePromptMetadata
+import io.github.xiaotong6666.uihelper.mode.LocalUiMode
+import io.github.xiaotong6666.uihelper.mode.UiMode
 
 @Composable
 fun NightlyUpdateDialog(
+    show: Boolean,
     currentVersionName: String,
     update: AvailableNightlyUpdate,
     downloadEnabled: Boolean,
     onDismiss: () -> Unit,
     onViewChanges: () -> Unit,
     onDownload: () -> Unit,
+    onDismissFinished: () -> Unit = {},
 ) {
+    if (LocalUiMode.current == UiMode.Miuix) {
+        NightlyUpdateDialogMiuix(
+            show = show,
+            currentVersionName = currentVersionName,
+            update = update,
+            downloadEnabled = downloadEnabled,
+            onDismiss = onDismiss,
+            onViewChanges = onViewChanges,
+            onDownload = onDownload,
+            onDismissFinished = onDismissFinished,
+        )
+        return
+    }
+    if (!show) return
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -84,12 +99,11 @@ fun NightlyUpdateDialog(
         ) {
             Surface(
                 modifier = Modifier
-                    .widthIn(max = 600.dp)
+                    .widthIn(max = 560.dp)
                     .heightIn(max = 680.dp),
-                shape = ShapeTokens.CornerExtraLarge,
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 10.dp,
-                shadowElevation = 18.dp,
+                shape = MaterialTheme.shapes.extraLarge,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                tonalElevation = 0.dp,
             ) {
                 Column(
                     modifier = Modifier
@@ -103,7 +117,7 @@ fun NightlyUpdateDialog(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Surface(
-                            shape = ShapeTokens.CornerLarge,
+                            shape = MaterialTheme.shapes.large,
                             color = MaterialTheme.colorScheme.primaryContainer,
                         ) {
                             Box(
@@ -125,9 +139,7 @@ fun NightlyUpdateDialog(
                         ) {
                             WrapSafeText(
                                 text = stringResource(R.string.update_dialog_title),
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                ),
+                                style = MaterialTheme.typography.titleLargeEmphasized,
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
                             WrapSafeText(
@@ -285,54 +297,58 @@ fun NightlyUpdateDialog(
 }
 
 @Composable
-private fun UpdateMetadataRow(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    monospace: Boolean = false,
+private fun NightlyUpdateDialogMiuix(
+    show: Boolean,
+    currentVersionName: String,
+    update: AvailableNightlyUpdate,
+    downloadEnabled: Boolean,
+    onDismiss: () -> Unit,
+    onViewChanges: () -> Unit,
+    onDownload: () -> Unit,
+    onDismissFinished: () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = ShapeTokens.CornerLarge,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                WrapSafeText(
-                    text = label,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                WrapSafeText(
-                    text = value,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = if (monospace) FontFamily.Monospace else null,
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        }
-    }
-}
-
-internal fun formatUpdateTime(raw: String): String {
-    return runCatching {
-        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
-            .withLocale(Locale.getDefault())
-            .withZone(ZoneId.systemDefault())
-            .format(Instant.parse(raw))
-    }.getOrDefault(raw)
+    UpdatePromptDialogMiuix(
+        show = show,
+        title = stringResource(R.string.update_dialog_title),
+        summary = stringResource(
+            R.string.update_version_change,
+            currentVersionName,
+            update.manifest.versionName,
+        ),
+        metadata = listOf(
+            UpdatePromptMetadata(
+                label = stringResource(R.string.update_branch_hash_label),
+                value = "${update.manifest.branch} · ${update.manifest.commit.sha.take(8)}",
+                icon = Icons.Rounded.Source,
+                monospace = true,
+            ),
+            UpdatePromptMetadata(
+                label = stringResource(R.string.update_author_label),
+                value = update.manifest.commit.authorName,
+                icon = Icons.Rounded.AccountCircle,
+            ),
+            UpdatePromptMetadata(
+                label = stringResource(R.string.update_time_label),
+                value = formatUpdateTime(update.manifest.builtAtUtc),
+                icon = Icons.Rounded.Schedule,
+            ),
+        ),
+        changesTitle = stringResource(R.string.update_changelog_title),
+        changes = update.changelog.map { commit ->
+            UpdatePromptChange(title = commit.subject, reference = commit.sha.take(8))
+        },
+        moreChangesLabel = when (val count = update.remainingCommitCount) {
+            null -> stringResource(R.string.update_remaining_commits_unknown)
+            in 1..Int.MAX_VALUE -> pluralStringResource(R.plurals.update_remaining_commits, count, count)
+            else -> null
+        },
+        viewAllLabel = stringResource(R.string.update_view_changes),
+        onViewAll = onViewChanges,
+        dismissLabel = stringResource(R.string.update_later),
+        confirmLabel = stringResource(R.string.update_download),
+        confirmEnabled = downloadEnabled,
+        onDismiss = onDismiss,
+        onConfirm = onDownload,
+        onDismissFinished = onDismissFinished,
+    )
 }

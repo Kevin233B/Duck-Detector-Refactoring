@@ -29,6 +29,9 @@ internal val Shapes: Shapes = Shapes(
     extraLarge = ContinuousCornerShape(28.dp),
 )
 
+/** KSU/InstallerX-style M3E shapes. Keep the legacy continuous shapes for MIUIX fallbacks. */
+internal val ExpressiveShapes: Shapes = Shapes()
+
 public object ShapeTokens {
     public val CornerMedium: CornerBasedShape = ContinuousCornerShape(12.dp)
     public val CornerLarge: CornerBasedShape = ContinuousCornerShape(16.dp)

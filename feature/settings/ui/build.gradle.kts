@@ -24,10 +24,12 @@ android {
 }
 
 dependencies {
+    api(libs.uihelper)
+    implementation(libs.miuix.ui)
+    implementation(libs.miuix.squircle)
     api(project(":core:ui"))
     implementation(project(":core:designsystem"))
     api(project(":feature:settings:presentation"))
-    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.material.icons.extended)
     api(libs.androidx.material3)
     implementation(libs.androidx.ui)

@@ -31,9 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
-import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
+import com.eltavine.duckdetector.core.designsystem.theme.miuixInsetSurfaceColor
 import com.eltavine.duckdetector.core.ui.model.HighlightItemModel
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
+import io.github.xiaotong6666.uihelper.mode.LocalUiMode
+import io.github.xiaotong6666.uihelper.mode.UiMode
+import top.yukonga.miuix.kmp.squircle.squircleBackground
 
 @Composable
 public fun HighlightRow(
@@ -45,7 +48,13 @@ public fun HighlightRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(color = DuckTheme.palette.groupedInset, shape = ShapeTokens.CornerLarge)
+            .then(
+                if (LocalUiMode.current == UiMode.Miuix) {
+                    Modifier.squircleBackground(miuixInsetSurfaceColor(), 16.dp)
+                } else {
+                    Modifier.background(color = DuckTheme.palette.groupedInset, shape = MaterialTheme.shapes.large)
+                },
+            )
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -65,13 +74,13 @@ public fun HighlightRow(
             WrapSafeText(
                 text = item.title,
                 modifier = Modifier.fillMaxWidth(),
-                style = DuckTypography.CalloutEmphasized,
+                style = if (LocalUiMode.current == UiMode.Miuix) DuckTypography.PanelTitle else DuckTypography.CalloutEmphasized,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             WrapSafeText(
                 text = item.detail,
                 modifier = Modifier.fillMaxWidth(),
-                style = DuckTypography.Footnote,
+                style = DuckTypography.PanelSupporting,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             CompactStatusBadge(status = item.status, modifier = Modifier.padding(top = 4.dp))

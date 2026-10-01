@@ -18,12 +18,11 @@ package com.eltavine.duckdetector.features.settings.ui.components
 
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import com.eltavine.duckdetector.core.designsystem.theme.ContinuousCornerShape
-import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 
 /**
  * Shapes for the [index]th of [count] rows of a settings group. The group's outer corners match the
@@ -34,7 +33,8 @@ import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 internal fun settingsItemShapes(index: Int, count: Int): ListItemShapes {
     val shapes = MaterialTheme.shapes
     return remember(index, count, shapes) {
-        val outer = ShapeTokens.CornerExtraLargeIncreased.topStart
+        // KSU / InstallerX use the Material large corner for the outside of segmented rows.
+        val outer = shapes.large.topStart
         fun shape(inner: CornerSize) = segmentShape(index, count, inner = inner, outer = outer)
         ListItemShapes(
             shape = shape(shapes.extraSmall.topStart),
@@ -55,5 +55,7 @@ internal fun segmentShape(
 ): CornerBasedShape {
     val top = if (index == 0) outer else inner
     val bottom = if (index == count - 1) outer else inner
-    return ContinuousCornerShape(topStart = top, topEnd = top, bottomEnd = bottom, bottomStart = bottom)
+    // Match KernelSU / InstallerX's Material segmented circular arcs. Continuous
+    // (squircle) corners belong to MIUIX and should not leak into the M3E skin.
+    return RoundedCornerShape(topStart = top, topEnd = top, bottomEnd = bottom, bottomStart = bottom)
 }

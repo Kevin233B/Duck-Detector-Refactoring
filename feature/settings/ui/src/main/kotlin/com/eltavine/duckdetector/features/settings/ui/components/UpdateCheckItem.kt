@@ -18,7 +18,6 @@ package com.eltavine.duckdetector.features.settings.ui.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -35,17 +34,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
 import com.eltavine.duckdetector.core.designsystem.theme.MotionTokens
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.features.settings.presentation.model.SettingsUpdateStatus
 import com.eltavine.duckdetector.features.settings.ui.R
+import io.github.xiaotong6666.uihelper.mode.LocalUiMode
+import io.github.xiaotong6666.uihelper.mode.UiMode
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 
 private enum class UpdateTrailing { Recheck, Checking, Details }
 
@@ -60,15 +60,14 @@ internal fun UpdateCheckItem(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val available = status == SettingsUpdateStatus.AVAILABLE
-    val tileColor by animateColorAsState(
-        targetValue = if (available) colorScheme.primary else DuckTheme.palette.groupedInset,
-        label = "updateTile",
-    )
     val glyph = when (status) {
         SettingsUpdateStatus.IDLE,
         SettingsUpdateStatus.CHECKING -> UpdateGlyph(Icons.Rounded.SystemUpdate, colorScheme.primary)
         SettingsUpdateStatus.CURRENT -> UpdateGlyph(Icons.Rounded.CheckCircle, colorScheme.primary)
-        SettingsUpdateStatus.AVAILABLE -> UpdateGlyph(Icons.Rounded.NewReleases, colorScheme.onPrimary)
+        SettingsUpdateStatus.AVAILABLE -> UpdateGlyph(
+            Icons.Rounded.NewReleases,
+            if (LocalUiMode.current == UiMode.Miuix) colorScheme.primary else colorScheme.onPrimaryContainer,
+        )
         SettingsUpdateStatus.FAILED -> UpdateGlyph(Icons.Rounded.ErrorOutline, colorScheme.error)
     }
     val trailing = when (status) {
@@ -94,13 +93,17 @@ internal fun UpdateCheckItem(
             settingsItemColors()
         },
         leadingContent = {
-            SettingsIconTile(containerColor = tileColor) {
+            SettingsIconTile {
                 AnimatedContent(
                     targetState = glyph,
                     transitionSpec = { crossfade() },
                     label = "updateGlyph",
                 ) { target ->
-                    Icon(imageVector = target.icon, contentDescription = null, tint = target.tint)
+                    Icon(
+                        imageVector = target.icon,
+                        contentDescription = null,
+                        tint = if (LocalUiMode.current == UiMode.Miuix) aboutMiuixIconColor() else target.tint,
+                    )
                 }
             }
         },
@@ -123,10 +126,13 @@ internal fun UpdateCheckItem(
                 label = "updateTrailing",
             ) { target ->
                 when (target) {
-                    UpdateTrailing.Checking -> CircularProgressIndicator(
-                        modifier = Modifier.size(22.dp),
-                        strokeWidth = 2.5.dp,
-                    )
+                    UpdateTrailing.Checking -> {
+                        if (LocalUiMode.current == UiMode.Miuix) {
+                            InfiniteProgressIndicator(size = 22.dp)
+                        } else {
+                            CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.5.dp)
+                        }
+                    }
                     UpdateTrailing.Details -> Icon(
                         imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                         contentDescription = null,

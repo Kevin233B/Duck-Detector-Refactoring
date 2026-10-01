@@ -28,6 +28,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.designsystem.components.DuckButtonDefaults
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
+import io.github.xiaotong6666.uihelper.mode.LocalUiMode
+import io.github.xiaotong6666.uihelper.mode.UiMode
+import top.yukonga.miuix.kmp.basic.Button as MiuixButton
+import top.yukonga.miuix.kmp.basic.ButtonDefaults as MiuixButtonDefaults
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * An action at the foot of a detector card. The [prominent] one is washed in the accent color;
@@ -42,6 +49,19 @@ public fun DetectorActionButton(
     enabled: Boolean = true,
     prominent: Boolean = false,
 ) {
+    if (LocalUiMode.current == UiMode.Miuix) {
+        MiuixButton(
+            onClick = onClick,
+            modifier = modifier,
+            enabled = enabled,
+            colors = if (prominent) MiuixButtonDefaults.buttonColorsPrimary() else MiuixButtonDefaults.buttonColors(),
+        ) {
+            MiuixIcon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            MiuixText(text = label, style = MiuixTheme.textStyles.button)
+        }
+        return
+    }
     Button(
         onClick = onClick,
         modifier = modifier,

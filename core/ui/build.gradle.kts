@@ -28,6 +28,11 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.uihelper)
+    implementation(libs.miuix.core)
+    implementation(libs.miuix.ui)
+    implementation(libs.miuix.icons)
+    implementation(libs.miuix.squircle)
     implementation(project(":core:designsystem"))
     api(project(":core:detector"))
     api(project(":core:evidence"))

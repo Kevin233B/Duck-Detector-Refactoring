@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
@@ -36,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.ui.components.DetectorCardFrame
 import com.eltavine.duckdetector.core.ui.components.DetectorDetailRowBlock
@@ -43,6 +45,7 @@ import com.eltavine.duckdetector.core.ui.components.DetectorFact
 import com.eltavine.duckdetector.core.ui.components.DetectorFactPair
 import com.eltavine.duckdetector.core.ui.components.DetectorHairline
 import com.eltavine.duckdetector.core.ui.components.DetectorSectionFrame
+import com.eltavine.duckdetector.core.ui.components.highestSectionSeverity
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
 import com.eltavine.duckdetector.features.zygisk.presentation.model.ZygiskCardModel
@@ -70,21 +73,43 @@ internal fun ZygiskDetectorCard(
         },
     ) {
         if (model.stateRows.isNotEmpty()) {
-            ZygiskDetailSection("Security state", Icons.Rounded.Info, model.stateRows)
+            ZygiskDetailSection(
+                "Security state",
+                Icons.Rounded.Info,
+                model.stateRows,
+                showDivider = model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() ||
+                    model.signalRows.isNotEmpty() || model.references.isNotEmpty(),
+            )
         }
         if (model.impactItems.isNotEmpty()) {
-            ZygiskImpactSection("Impact", Icons.Rounded.CrisisAlert, model.impactItems)
+            ZygiskImpactSection(
+                "Impact",
+                Icons.Rounded.CrisisAlert,
+                model.impactItems,
+                showDivider = model.methodRows.isNotEmpty() || model.signalRows.isNotEmpty() || model.references.isNotEmpty(),
+            )
         }
         if (model.methodRows.isNotEmpty()) {
-            ZygiskDetailSection("Detection methods", Icons.Rounded.Search, model.methodRows)
+            ZygiskDetailSection(
+                "Detection methods",
+                Icons.Rounded.Search,
+                model.methodRows,
+                showDivider = model.signalRows.isNotEmpty() || model.references.isNotEmpty(),
+            )
         }
         if (model.signalRows.isNotEmpty()) {
-            ZygiskDetailSection("Signals", Icons.Rounded.Memory, model.signalRows)
+            ZygiskDetailSection(
+                "Signals",
+                Icons.Rounded.Memory,
+                model.signalRows,
+                showDivider = model.references.isNotEmpty(),
+            )
         }
         if (model.references.isNotEmpty()) {
             DetectorSectionFrame(
                 title = "References",
                 icon = Icons.AutoMirrored.Rounded.MenuBook,
+                showDivider = false,
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     model.references.forEach { reference ->
@@ -111,7 +136,7 @@ private fun ZygiskCollapsedOverview(
     val native = model.headerFacts.firstOrNull { it.fact == ZygiskHeaderFact.NATIVE } ?: return
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -149,10 +174,13 @@ private fun ZygiskDetailSection(
     title: String,
     icon: ImageVector,
     rows: List<ZygiskDetailRowModel>,
+    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
+        severity = highestSectionSeverity(rows.map { it.status }),
+        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
             rows.forEachIndexed { index, row ->
@@ -185,10 +213,13 @@ private fun ZygiskImpactSection(
     title: String,
     icon: ImageVector,
     items: List<ZygiskImpactItemModel>,
+    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
+        severity = highestSectionSeverity(items.map { it.status }),
+        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items.forEach { item ->

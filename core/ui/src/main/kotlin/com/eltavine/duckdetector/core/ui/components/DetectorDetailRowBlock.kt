@@ -28,17 +28,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
 import com.eltavine.duckdetector.core.evidence.DetectorStatus
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
+import io.github.xiaotong6666.uihelper.adaptive.LabeledValueLayout
+import io.github.xiaotong6666.uihelper.mode.LocalUiMode
+import io.github.xiaotong6666.uihelper.mode.UiMode
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-private val LabelValueGap = 16.dp
-private val StackedGap = 2.dp
 
 @Composable
 public fun DetectorDetailRowBlock(
@@ -56,13 +58,61 @@ public fun DetectorDetailRowBlock(
 ) {
     val appearance = rememberStatusAppearance(status)
 
+    if (LocalUiMode.current == UiMode.Miuix) {
+        // Avoid maxIntrinsicWidth(Infinity) for diagnostic values. It forces every long
+        // certificate / property line to be measured repeatedly during expansion and scroll.
+        // Labels and values get separate full-width lines with a clear MIUIX type hierarchy.
+        Column(
+            modifier = modifier.fillMaxWidth().padding(vertical = 9.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            WrapSafeText(
+                text = label,
+                modifier = Modifier.fillMaxWidth(),
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                MiuixIcon(
+                    imageVector = statusIcon ?: appearance.icon,
+                    contentDescription = null,
+                    tint = appearance.iconTint,
+                    modifier = Modifier.padding(top = 2.dp).size(16.dp),
+                )
+                WrapSafeText(
+                    text = value,
+                    modifier = Modifier.weight(1f).then(valueModifier),
+                    style = MiuixTheme.textStyles.body1.copy(lineHeight = 22.sp),
+                    color = MiuixTheme.colorScheme.onSurface,
+                )
+            }
+            detail?.takeIf { it.isNotBlank() }?.let { raw ->
+                WrapSafeText(
+                    text = raw,
+                    modifier = Modifier.fillMaxWidth().padding(start = 24.dp),
+                    style = MiuixTheme.textStyles.body2.copy(
+                        fontFamily = if (detailMonospace) FontFamily.Monospace else null,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                    ),
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
+        }
+        return
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = verticalPadding),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        LabeledValue(
+        LabeledValueLayout(
             label = {
                 WrapSafeText(
                     text = label,
@@ -94,58 +144,11 @@ public fun DetectorDetailRowBlock(
             WrapSafeText(
                 text = resolvedDetail,
                 modifier = Modifier.fillMaxWidth(),
-                style = DuckTypography.Footnote.copy(
-                    fontFamily = if (detailMonospace) FontFamily.Monospace else DuckTypography.Footnote.fontFamily,
-                ),
+                style = DuckTypography.PanelSupporting.let { base ->
+                    if (detailMonospace) base.copy(fontFamily = FontFamily.Monospace) else base
+                },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-    }
-}
-
-/**
- * Sets the value at the end of the label's line when both fit on one line, as a settings row
- * does, and under the label otherwise, so a long value keeps its full width instead of wrapping in
- * a narrow column.
- */
-@Composable
-private fun LabeledValue(
-    label: @Composable () -> Unit,
-    value: @Composable () -> Unit,
-) {
-    Layout(
-        contents = listOf(label, value),
-        modifier = Modifier.fillMaxWidth(),
-    ) { (labelMeasurables, valueMeasurables), constraints ->
-        val labelMeasurable = labelMeasurables.single()
-        val valueMeasurable = valueMeasurables.single()
-        val gap = LabelValueGap.roundToPx()
-        val labelWidth = labelMeasurable.maxIntrinsicWidth(Constraints.Infinity)
-        val valueWidth = valueMeasurable.maxIntrinsicWidth(Constraints.Infinity)
-        val width = if (constraints.hasBoundedWidth) {
-            constraints.maxWidth
-        } else {
-            labelWidth + gap + valueWidth
-        }
-
-        if (labelWidth + gap + valueWidth <= width) {
-            val valuePlaceable = valueMeasurable.measure(Constraints(maxWidth = width))
-            val labelPlaceable = labelMeasurable.measure(
-                Constraints(maxWidth = (width - valuePlaceable.width - gap).coerceAtLeast(0)),
-            )
-            val height = maxOf(labelPlaceable.height, valuePlaceable.height)
-            layout(width, height) {
-                labelPlaceable.placeRelative(0, (height - labelPlaceable.height) / 2)
-                valuePlaceable.placeRelative(width - valuePlaceable.width, (height - valuePlaceable.height) / 2)
-            }
-        } else {
-            val labelPlaceable = labelMeasurable.measure(Constraints(maxWidth = width))
-            val valuePlaceable = valueMeasurable.measure(Constraints(maxWidth = width))
-            val spacing = StackedGap.roundToPx()
-            layout(width, labelPlaceable.height + spacing + valuePlaceable.height) {
-                labelPlaceable.placeRelative(0, 0)
-                valuePlaceable.placeRelative(0, labelPlaceable.height + spacing)
-            }
         }
     }
 }

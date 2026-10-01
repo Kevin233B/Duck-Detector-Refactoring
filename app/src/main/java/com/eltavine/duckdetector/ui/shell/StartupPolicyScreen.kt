@@ -21,6 +21,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.R
 import com.eltavine.duckdetector.core.designsystem.components.StatusBarProtection
+import com.eltavine.duckdetector.core.designsystem.components.DuckPanel
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
 import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
@@ -61,6 +63,11 @@ import com.eltavine.duckdetector.notifications.ScanNotificationPermissionState
 import com.eltavine.duckdetector.notifications.preferences.ScanNotificationPrefs
 import com.eltavine.duckdetector.sdk.PackageVisibility
 import com.eltavine.duckdetector.startup.StartupHeroGlyph
+import io.github.xiaotong6666.uihelper.mode.LocalUiMode
+import io.github.xiaotong6666.uihelper.mode.UiMode
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator as MiuixCircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun StartupPolicyScreen(
@@ -245,36 +252,71 @@ private fun ResolutionProgress(
 
 @Composable
 private fun LoadingPolicyCard() {
+    if (LocalUiMode.current == UiMode.Miuix) {
+        // DuckPanel uses the native MIUIX Card: surfaceContainer and squircle corners.
+        DuckPanel(
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 18.dp),
+        ) {
+            LoadingPolicyCardContent(miuix = true)
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = DuckTheme.palette.groupedSurface,
+                    shape = ShapeTokens.CornerExtraLargeIncreased,
+                )
+                .padding(horizontal = 18.dp, vertical = 18.dp),
+        ) {
+            LoadingPolicyCardContent(miuix = false)
+        }
+    }
+}
+
+@Composable
+private fun LoadingPolicyCardContent(miuix: Boolean) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = DuckTheme.palette.groupedSurface,
-                shape = ShapeTokens.CornerExtraLargeIncreased,
-            )
-            .padding(horizontal = 18.dp, vertical = 18.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(24.dp),
-            strokeWidth = 2.5.dp,
-            color = MaterialTheme.colorScheme.primary,
-        )
+        if (miuix) {
+            MiuixCircularProgressIndicator(size = 24.dp)
+        } else {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                strokeWidth = 2.5.dp,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            WrapSafeText(
-                text = stringResource(R.string.startup_loading_dependencies_title),
-                style = DuckTypography.Headline,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            WrapSafeText(
-                text = stringResource(R.string.startup_loading_dependencies_detail),
-                style = DuckTypography.Footnote,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (miuix) {
+                MiuixText(
+                    text = stringResource(R.string.startup_loading_dependencies_title),
+                    style = MiuixTheme.textStyles.title3,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer,
+                )
+                MiuixText(
+                    text = stringResource(R.string.startup_loading_dependencies_detail),
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            } else {
+                WrapSafeText(
+                    text = stringResource(R.string.startup_loading_dependencies_title),
+                    style = DuckTypography.Headline,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                WrapSafeText(
+                    text = stringResource(R.string.startup_loading_dependencies_detail),
+                    style = DuckTypography.Footnote,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
