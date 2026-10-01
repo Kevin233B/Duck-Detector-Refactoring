@@ -16,48 +16,17 @@
 
 package com.eltavine.duckdetector.core.designsystem.theme
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-import io.github.xiaotong6666.uihelper.mode.LocalUiMode
-import io.github.xiaotong6666.uihelper.mode.UiMode
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * Text styles for grouped screens, stepped like Apple's text styles: a large title for the page,
  * a headline for each container, then callout, footnote and caption for the text inside it.
  */
 public object DuckTypography {
-    /** Native MIUIX page title, with the existing Google Sans title retained for Material. */
-    public val PageTitle: TextStyle
-        @Composable @ReadOnlyComposable
-        get() = if (LocalUiMode.current == UiMode.Miuix) MiuixTheme.textStyles.title1 else MaterialTheme.typography.headlineLarge
-
-    public val StatusHeadline: TextStyle
-        @Composable @ReadOnlyComposable
-        get() = if (LocalUiMode.current == UiMode.Miuix) MiuixTheme.textStyles.title3 else MaterialTheme.typography.headlineSmall
-
-    public val PanelTitle: TextStyle
-        @Composable @ReadOnlyComposable
-        get() = if (LocalUiMode.current == UiMode.Miuix) MiuixTheme.textStyles.headline1.copy(fontWeight = FontWeight.Medium) else MaterialTheme.typography.titleLarge
-
-    public val PanelBody: TextStyle
-        @Composable @ReadOnlyComposable
-        get() = if (LocalUiMode.current == UiMode.Miuix) MiuixTheme.textStyles.body1 else MaterialTheme.typography.bodyLarge
-
-    public val PanelSupporting: TextStyle
-        @Composable @ReadOnlyComposable
-        get() = if (LocalUiMode.current == UiMode.Miuix) MiuixTheme.textStyles.body2 else MaterialTheme.typography.bodyMedium
-
-    public val PanelCaption: TextStyle
-        @Composable @ReadOnlyComposable
-        get() = if (LocalUiMode.current == UiMode.Miuix) MiuixTheme.textStyles.footnote1 else MaterialTheme.typography.labelMedium
-
     public val LargeTitle: TextStyle = heading(34.sp, 41.sp, FontWeight.Bold, (-0.4).sp)
     public val Title1: TextStyle = heading(28.sp, 34.sp, FontWeight.Bold, (-0.3).sp)
     public val Title2: TextStyle = heading(22.sp, 28.sp, FontWeight.Bold, (-0.2).sp)

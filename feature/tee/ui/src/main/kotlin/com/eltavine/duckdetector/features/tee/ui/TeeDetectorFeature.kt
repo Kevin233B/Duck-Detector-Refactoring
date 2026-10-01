@@ -18,6 +18,7 @@ package com.eltavine.duckdetector.features.tee.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudSync
+import androidx.compose.material.icons.rounded.NetworkCheck
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -64,7 +65,7 @@ internal object TeeDetectorFeature : DetectorFeature {
                 declinedDetail = R.string.tee_revocation_network_declined_detail,
             ),
             setting = ConsentSetting(
-                icon = Icons.Rounded.CloudSync,
+                icon = Icons.Rounded.NetworkCheck,
                 title = R.string.tee_revocation_network_setting_title,
                 summary = R.string.tee_revocation_network_setting_summary,
                 footer = R.string.tee_revocation_network_setting_footer,

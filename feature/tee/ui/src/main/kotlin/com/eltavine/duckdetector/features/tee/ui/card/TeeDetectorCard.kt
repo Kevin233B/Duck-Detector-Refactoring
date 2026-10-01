@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -38,7 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.IntrinsicSize
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
 import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
@@ -66,22 +64,22 @@ internal fun TeeDetectorCard(
     onDismissCertificates: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Keep the dialog composables mounted while show changes to false. Native MIUIX
-    // overlays need the same instance to finish their transition before releasing the host.
-    TeeDetailsDialog(
-        show = showDetailsDialog,
-        exportText = model.exportText,
-        certificateCount = model.certificateSummary.certificates.size,
-        onDismiss = onDismissDetails,
-    )
+    if (showDetailsDialog) {
+        TeeDetailsDialog(
+            exportText = model.exportText,
+            certificateCount = model.certificateSummary.certificates.size,
+            onDismiss = onDismissDetails,
+        )
+    }
 
-    TeeCertificatesDialog(
-        show = showCertificatesDialog,
-        label = model.certificateSummary.label,
-        count = model.certificateSummary.count,
-        certificates = model.certificateSummary.certificates,
-        onDismiss = onDismissCertificates,
-    )
+    if (showCertificatesDialog) {
+        TeeCertificatesDialog(
+            label = model.certificateSummary.label,
+            count = model.certificateSummary.count,
+            certificates = model.certificateSummary.certificates,
+            onDismiss = onDismissCertificates,
+        )
+    }
 
     DetectorCardFrame(
         title = model.title,
@@ -112,7 +110,6 @@ internal fun TeeDetectorCard(
     ) {
         if (model.highlightSignals.isNotEmpty()) {
             FlowRow(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -122,12 +119,8 @@ internal fun TeeDetectorCard(
             }
         }
 
-        model.factGroups.forEachIndexed { index, group ->
-            TeeFactGroup(
-                group = group,
-                stateKey = "tee-fact-$index",
-                showDivider = index < model.factGroups.lastIndex,
-            )
+        model.factGroups.forEach { group ->
+            TeeFactGroup(group = group)
         }
     }
 }
@@ -155,7 +148,7 @@ private fun TeeCollapsedOverview(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.Top,
         ) {

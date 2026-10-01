@@ -25,7 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.features.settings.ui.R
-import com.eltavine.duckdetector.features.settings.ui.components.AboutLeadingIcon
+import com.eltavine.duckdetector.features.settings.ui.components.SettingsIconTile
 import com.eltavine.duckdetector.features.settings.ui.components.SettingsItem
 
 @Composable
@@ -37,7 +37,7 @@ internal fun OpenSourceLicensesItem(
         headline = stringResource(R.string.licenses_entry_title),
         shapes = shapes,
         onClick = onClick,
-        leadingContent = { AboutLeadingIcon(icon = Icons.Rounded.Description) },
+        leadingContent = { SettingsIconTile(icon = Icons.Rounded.Description) },
         supportingContent = { WrapSafeText(text = stringResource(R.string.licenses_entry_subtitle)) },
         trailingContent = {
             Icon(

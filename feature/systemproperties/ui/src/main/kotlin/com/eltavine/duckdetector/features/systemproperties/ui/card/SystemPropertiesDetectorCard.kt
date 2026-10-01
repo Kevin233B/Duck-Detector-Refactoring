@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.CompareArrows
@@ -38,7 +37,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.ui.components.DetectorCardFrame
 import com.eltavine.duckdetector.core.ui.components.DetectorDetailRowBlock
@@ -46,7 +44,6 @@ import com.eltavine.duckdetector.core.ui.components.DetectorFact
 import com.eltavine.duckdetector.core.ui.components.DetectorFactPair
 import com.eltavine.duckdetector.core.ui.components.DetectorHairline
 import com.eltavine.duckdetector.core.ui.components.DetectorSectionFrame
-import com.eltavine.duckdetector.core.ui.components.highestSectionSeverity
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
 import com.eltavine.duckdetector.features.systemproperties.presentation.model.SystemPropertiesCardModel
@@ -77,9 +74,6 @@ internal fun SystemPropertiesDetectorCard(
                 title = "Security and runtime",
                 icon = Icons.Rounded.Shield,
                 rows = model.coreRows,
-                showDivider = model.bootRows.isNotEmpty() || model.buildRows.isNotEmpty() ||
-                    model.sourceRows.isNotEmpty() || model.consistencyRows.isNotEmpty() || model.infoRows.isNotEmpty() ||
-                    model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -88,9 +82,6 @@ internal fun SystemPropertiesDetectorCard(
                 title = "Verified boot",
                 icon = Icons.Rounded.VerifiedUser,
                 rows = model.bootRows,
-                showDivider = model.buildRows.isNotEmpty() || model.sourceRows.isNotEmpty() ||
-                    model.consistencyRows.isNotEmpty() || model.infoRows.isNotEmpty() || model.impactItems.isNotEmpty() ||
-                    model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -99,9 +90,6 @@ internal fun SystemPropertiesDetectorCard(
                 title = "Build profile",
                 icon = Icons.Rounded.ViewInAr,
                 rows = model.buildRows,
-                showDivider = model.sourceRows.isNotEmpty() || model.consistencyRows.isNotEmpty() ||
-                    model.infoRows.isNotEmpty() || model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() ||
-                    model.scanRows.isNotEmpty(),
             )
         }
 
@@ -110,8 +98,6 @@ internal fun SystemPropertiesDetectorCard(
                 title = "Source consistency",
                 icon = Icons.AutoMirrored.Rounded.CompareArrows,
                 rows = model.sourceRows,
-                showDivider = model.consistencyRows.isNotEmpty() || model.infoRows.isNotEmpty() ||
-                    model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -120,8 +106,6 @@ internal fun SystemPropertiesDetectorCard(
                 title = "Cross-check rules",
                 icon = Icons.AutoMirrored.Rounded.FactCheck,
                 rows = model.consistencyRows,
-                showDivider = model.infoRows.isNotEmpty() || model.impactItems.isNotEmpty() ||
-                    model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -130,7 +114,6 @@ internal fun SystemPropertiesDetectorCard(
                 title = "Device info",
                 icon = Icons.Rounded.Fingerprint,
                 rows = model.infoRows,
-                showDivider = model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -139,7 +122,6 @@ internal fun SystemPropertiesDetectorCard(
                 title = "Impact",
                 icon = Icons.Rounded.CrisisAlert,
                 items = model.impactItems,
-                showDivider = model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -148,7 +130,6 @@ internal fun SystemPropertiesDetectorCard(
                 title = "Detection methods",
                 icon = Icons.Rounded.Search,
                 rows = model.methodRows,
-                showDivider = model.scanRows.isNotEmpty(),
             )
         }
 
@@ -157,7 +138,6 @@ internal fun SystemPropertiesDetectorCard(
                 title = "Scan summary",
                 icon = Icons.Rounded.Info,
                 rows = model.scanRows,
-                showDivider = false,
             )
         }
     }
@@ -173,7 +153,7 @@ private fun SystemPropertiesCollapsedOverview(
     val build = model.headerFacts.firstOrNull { it.fact == SystemPropertiesHeaderFact.BUILD } ?: return
 
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -211,13 +191,10 @@ private fun SystemPropertiesDetailSection(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     rows: List<SystemPropertiesDetailRowModel>,
-    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
-        severity = highestSectionSeverity(rows.map { it.status }),
-        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
             rows.forEachIndexed { index, row ->
@@ -248,13 +225,10 @@ private fun SystemPropertiesImpactSection(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     items: List<SystemPropertiesImpactItemModel>,
-    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
-        severity = highestSectionSeverity(items.map { it.status }),
-        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items.forEach { item ->

@@ -49,6 +49,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
 import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
@@ -57,8 +59,6 @@ import com.eltavine.duckdetector.core.ui.components.DetectorDetailRowBlock
 import com.eltavine.duckdetector.core.ui.components.DetectorFact
 import com.eltavine.duckdetector.core.ui.components.DetectorFactPair
 import com.eltavine.duckdetector.core.ui.components.DetectorHairline
-import com.eltavine.duckdetector.core.ui.components.DetectorSectionFrame
-import com.eltavine.duckdetector.core.ui.components.highestSectionSeverity
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.copyPlainTextToClipboard
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
@@ -114,20 +114,24 @@ internal fun TeeHighlightPill(
 @Composable
 internal fun TeeFactGroup(
     group: TeeFactGroupModel,
-    stateKey: String,
-    showDivider: Boolean,
 ) {
-    // Both skins use the same section state and default-to-collapsed behavior.
-    DetectorSectionFrame(
-        title = group.title,
-        icon = Icons.Rounded.Policy,
-        stateKey = stateKey,
-        showDivider = showDivider,
-        severity = highestSectionSeverity(group.rows.map { it.status }),
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        WrapSafeText(
+            text = group.title,
+            modifier = Modifier.semantics { heading() },
+            style = DuckTypography.FootnoteEmphasized,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         group.rows.forEachIndexed { index, row ->
             TeeFactRow(row = row)
-            if (index < group.rows.lastIndex) DetectorHairline()
+            if (index < group.rows.lastIndex) {
+                DetectorHairline()
+            }
         }
     }
 }

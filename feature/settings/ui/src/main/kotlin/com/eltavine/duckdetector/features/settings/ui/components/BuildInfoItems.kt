@@ -38,15 +38,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.designsystem.theme.MotionTokens
 import com.eltavine.duckdetector.core.ui.R as CoreUiR
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.copyPlainTextToClipboard
 import com.eltavine.duckdetector.core.ui.presentation.formatBuildTimeUtc
 import com.eltavine.duckdetector.features.settings.ui.R
-import io.github.xiaotong6666.uihelper.mode.LocalUiMode
-import io.github.xiaotong6666.uihelper.mode.UiMode
 
 @Composable
 internal fun VersionItem(
@@ -76,7 +73,7 @@ internal fun VersionItem(
             }
         },
         onClick = toggle,
-        leadingContent = { AboutLeadingIcon(icon = Icons.Rounded.Info) },
+        leadingContent = { SettingsIconTile(icon = Icons.Rounded.Info) },
         supportingContent = {
             WrapSafeText(text = stringResource(R.string.about_value_version, versionName, versionCode))
         },
@@ -110,13 +107,11 @@ internal fun BuildDetailItems(
     ).joinToString(separator = "\n")
     val copyConfirmation = stringResource(R.string.about_copy_toast)
 
-    Column(verticalArrangement = Arrangement.spacedBy(
-        if (LocalUiMode.current == UiMode.Miuix) 0.dp else ListItemDefaults.SegmentedGap,
-    )) {
+    Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
         SettingsItem(
             headline = stringResource(R.string.about_label_build_time),
             shapes = settingsItemShapes(index = firstIndex, count = count),
-            leadingContent = { AboutLeadingIcon(icon = Icons.Rounded.Schedule) },
+            leadingContent = { SettingsIconTile(icon = Icons.Rounded.Schedule) },
             supportingContent = {
                 WrapSafeText(text = stringResource(R.string.about_value_build_time, buildTime))
             },
@@ -124,7 +119,7 @@ internal fun BuildDetailItems(
         SettingsItem(
             headline = stringResource(R.string.about_label_build_hash),
             shapes = settingsItemShapes(index = firstIndex + 1, count = count),
-            leadingContent = { AboutLeadingIcon(icon = Icons.Rounded.Tag) },
+            leadingContent = { SettingsIconTile(icon = Icons.Rounded.Tag) },
             supportingContent = {
                 WrapSafeText(
                     text = buildHash,
@@ -138,7 +133,7 @@ internal fun BuildDetailItems(
             onClick = {
                 copyPlainTextToClipboard(context, clipboardLabel, clipboardText, copyConfirmation)
             },
-            leadingContent = { AboutLeadingIcon(icon = Icons.Rounded.ContentCopy) },
+            leadingContent = { SettingsIconTile(icon = Icons.Rounded.ContentCopy) },
             supportingContent = {
                 WrapSafeText(text = stringResource(R.string.about_copy_build_info_summary))
             },

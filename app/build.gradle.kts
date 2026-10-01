@@ -34,10 +34,6 @@ android {
 generateDetectorCards(packageName = "com.eltavine.duckdetector.ui")
 
 dependencies {
-    implementation(libs.uihelper)
-    implementation(libs.miuix.nav)
-    implementation(libs.miuix.ui)
-    implementation(project(":core:navigation"))
     implementation(project(":core:detector"))
     implementation(project(":core:evidence"))
     implementation(project(":core:scan"))

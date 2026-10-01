@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
@@ -37,7 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.ui.components.DetectorCardFrame
 import com.eltavine.duckdetector.core.ui.components.DetectorDetailRowBlock
@@ -45,7 +43,6 @@ import com.eltavine.duckdetector.core.ui.components.DetectorFact
 import com.eltavine.duckdetector.core.ui.components.DetectorFactPair
 import com.eltavine.duckdetector.core.ui.components.DetectorHairline
 import com.eltavine.duckdetector.core.ui.components.DetectorSectionFrame
-import com.eltavine.duckdetector.core.ui.components.highestSectionSeverity
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
 import com.eltavine.duckdetector.features.virtualization.presentation.model.VirtualizationCardModel
@@ -71,68 +68,33 @@ internal fun VirtualizationDetectorCard(
         },
     ) {
         if (model.environmentRows.isNotEmpty()) {
-            VirtualizationDetailSection(
-                "Environment",
-                Icons.Rounded.Info,
-                model.environmentRows,
-                showDivider = model.runtimeRows.isNotEmpty() || model.consistencyRows.isNotEmpty() ||
-                    model.honeypotRows.isNotEmpty() || model.hostAppRows.isNotEmpty() || model.impactItems.isNotEmpty() ||
-                    model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty() || model.references.isNotEmpty(),
-            )
+            VirtualizationDetailSection("Environment", Icons.Rounded.Info, model.environmentRows)
         }
         if (model.runtimeRows.isNotEmpty()) {
-            VirtualizationDetailSection(
-                "Runtime", Icons.Rounded.Memory, model.runtimeRows,
-                showDivider = model.consistencyRows.isNotEmpty() || model.honeypotRows.isNotEmpty() ||
-                    model.hostAppRows.isNotEmpty() || model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() ||
-                    model.scanRows.isNotEmpty() || model.references.isNotEmpty(),
-            )
+            VirtualizationDetailSection("Runtime", Icons.Rounded.Memory, model.runtimeRows)
         }
         if (model.consistencyRows.isNotEmpty()) {
-            VirtualizationDetailSection(
-                "Consistency", Icons.Rounded.SyncAlt, model.consistencyRows,
-                showDivider = model.honeypotRows.isNotEmpty() || model.hostAppRows.isNotEmpty() ||
-                    model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty() ||
-                    model.references.isNotEmpty(),
-            )
+            VirtualizationDetailSection("Consistency", Icons.Rounded.SyncAlt, model.consistencyRows)
         }
         if (model.honeypotRows.isNotEmpty()) {
-            VirtualizationDetailSection(
-                "Honeypots", Icons.Rounded.Search, model.honeypotRows,
-                showDivider = model.hostAppRows.isNotEmpty() || model.impactItems.isNotEmpty() ||
-                    model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty() || model.references.isNotEmpty(),
-            )
+            VirtualizationDetailSection("Honeypots", Icons.Rounded.Search, model.honeypotRows)
         }
         if (model.hostAppRows.isNotEmpty()) {
-            VirtualizationDetailSection(
-                "Host Apps", Icons.Rounded.FolderZip, model.hostAppRows,
-                showDivider = model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() ||
-                    model.scanRows.isNotEmpty() || model.references.isNotEmpty(),
-            )
+            VirtualizationDetailSection("Host Apps", Icons.Rounded.FolderZip, model.hostAppRows)
         }
         if (model.impactItems.isNotEmpty()) {
-            VirtualizationImpactSection(
-                "Impact", Icons.Rounded.CrisisAlert, model.impactItems,
-                showDivider = model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty() || model.references.isNotEmpty(),
-            )
+            VirtualizationImpactSection("Impact", Icons.Rounded.CrisisAlert, model.impactItems)
         }
         if (model.methodRows.isNotEmpty()) {
-            VirtualizationDetailSection(
-                "Detection Methods", Icons.Rounded.Search, model.methodRows,
-                showDivider = model.scanRows.isNotEmpty() || model.references.isNotEmpty(),
-            )
+            VirtualizationDetailSection("Detection Methods", Icons.Rounded.Search, model.methodRows)
         }
         if (model.scanRows.isNotEmpty()) {
-            VirtualizationDetailSection(
-                "Scan State", Icons.Rounded.Info, model.scanRows,
-                showDivider = model.references.isNotEmpty(),
-            )
+            VirtualizationDetailSection("Scan State", Icons.Rounded.Info, model.scanRows)
         }
         if (model.references.isNotEmpty()) {
             DetectorSectionFrame(
                 title = "References",
                 icon = Icons.AutoMirrored.Rounded.MenuBook,
-                showDivider = false,
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     model.references.forEach { reference ->
@@ -159,7 +121,7 @@ private fun VirtualizationCollapsedOverview(
     val fourth = model.headerFacts.getOrNull(3) ?: return
 
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -197,13 +159,10 @@ private fun VirtualizationDetailSection(
     title: String,
     icon: ImageVector,
     rows: List<VirtualizationDetailRowModel>,
-    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
-        severity = highestSectionSeverity(rows.map { it.status }),
-        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
             rows.forEachIndexed { index, row ->
@@ -234,13 +193,10 @@ private fun VirtualizationImpactSection(
     title: String,
     icon: ImageVector,
     items: List<VirtualizationImpactItemModel>,
-    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
-        severity = highestSectionSeverity(items.map { it.status }),
-        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items.forEach { item ->

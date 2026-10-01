@@ -24,8 +24,6 @@ android {
 }
 
 dependencies {
-    implementation(libs.uihelper)
-    implementation(libs.miuix.ui)
     implementation(project(":core:ui"))
     implementation(project(":core:designsystem"))
     api(project(":feature:update:domain"))

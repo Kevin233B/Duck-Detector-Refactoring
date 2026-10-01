@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,25 +44,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
-import io.github.xiaotong6666.uihelper.mode.LocalUiMode
-import io.github.xiaotong6666.uihelper.mode.UiMode
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
-import top.yukonga.miuix.kmp.basic.CardDefaults as MiuixCardDefaults
-import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
-import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.window.WindowDialog
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun TeeDetailsDialog(
-    show: Boolean,
     exportText: String,
     certificateCount: Int,
     onDismiss: () -> Unit,
@@ -73,13 +62,15 @@ internal fun TeeDetailsDialog(
     }
 
     TeeDialogFrame(
-        show = show,
         title = "TEE details",
         subtitle = "Structured export for debugging, sharing, and manual verification.",
         icon = Icons.Rounded.Details,
         onDismiss = onDismiss,
         heroContent = {
-            TeeDialogSurface(tone = TeeDialogTone.High) {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = ShapeTokens.CornerExtraLarge,
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -116,7 +107,10 @@ internal fun TeeDetailsDialog(
         },
     ) {
         if (exportText.isBlank()) {
-            TeeDialogSurface(tone = TeeDialogTone.Low) {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shape = ShapeTokens.CornerExtraLarge,
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -136,7 +130,10 @@ internal fun TeeDetailsDialog(
                 }
             }
         } else {
-            TeeDialogSurface(tone = TeeDialogTone.Low) {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shape = ShapeTokens.CornerExtraLarge,
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -147,7 +144,10 @@ internal fun TeeDetailsDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        TeeDialogSurface(tone = TeeDialogTone.Highest, cornerRadius = 12.dp) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            shape = ShapeTokens.CornerLarge,
+                        ) {
                             Icon(
                                 imageVector = Icons.Rounded.Details,
                                 contentDescription = null,
@@ -170,7 +170,10 @@ internal fun TeeDetailsDialog(
                             )
                         }
                     }
-                    TeeDialogSurface(tone = TeeDialogTone.High, cornerRadius = 12.dp) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = ShapeTokens.CornerLargeIncreased,
+                    ) {
                         SelectionContainer {
                             WrapSafeText(
                                 text = exportText,
@@ -190,51 +193,8 @@ internal fun TeeDetailsDialog(
     }
 }
 
-internal enum class TeeDialogTone { Low, High, Highest }
-
-/** Match the original Material surfaces in Material mode; use MIUIX squircle cards in MIUIX mode. */
-@Composable
-internal fun TeeDialogSurface(
-    tone: TeeDialogTone,
-    modifier: Modifier = Modifier,
-    cornerRadius: Dp = 16.dp,
-    content: @Composable () -> Unit,
-) {
-    if (LocalUiMode.current == UiMode.Miuix) {
-        val scheme = MiuixTheme.colorScheme
-        MiuixCard(
-            modifier = modifier,
-            cornerRadius = cornerRadius,
-            insideMargin = PaddingValues(0.dp),
-            colors = MiuixCardDefaults.defaultColors(
-                color = when (tone) {
-                    TeeDialogTone.Low -> scheme.surfaceContainer
-                    TeeDialogTone.High -> scheme.surfaceContainerHigh
-                    TeeDialogTone.Highest -> scheme.surfaceContainerHighest
-                },
-            ),
-        ) { content() }
-    } else {
-        Surface(
-            modifier = modifier,
-            color = when (tone) {
-                TeeDialogTone.Low -> MaterialTheme.colorScheme.surfaceContainerLow
-                TeeDialogTone.High -> MaterialTheme.colorScheme.surfaceContainerHigh
-                TeeDialogTone.Highest -> MaterialTheme.colorScheme.surfaceContainerHighest
-            },
-            shape = when {
-                cornerRadius == 16.dp -> ShapeTokens.CornerExtraLarge
-                tone == TeeDialogTone.Highest -> ShapeTokens.CornerLarge
-                else -> ShapeTokens.CornerLargeIncreased
-            },
-            content = content,
-        )
-    }
-}
-
 @Composable
 internal fun TeeDialogFrame(
-    show: Boolean,
     title: String,
     subtitle: String,
     icon: ImageVector,
@@ -242,42 +202,14 @@ internal fun TeeDialogFrame(
     heroContent: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    if (LocalUiMode.current == UiMode.Miuix) {
-        WindowDialog(
-            show = show,
-            title = title,
-            summary = subtitle,
-            onDismissRequest = onDismiss,
-            maxWidth = 560.dp,
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                heroContent?.invoke()
-                Column(
-                    modifier = Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    content = content,
-                )
-                MiuixTextButton(
-                    text = stringResource(R.string.tee_dialog_close),
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-        return
-    }
-    if (!show) return
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 720.dp),
-            shape = MaterialTheme.shapes.extraLarge,
+            shape = ShapeTokens.CornerExtraLarge,
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                containerColor = MaterialTheme.colorScheme.surface,
             ),
         ) {
             Column(
@@ -292,8 +224,8 @@ internal fun TeeDialogFrame(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Surface(
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = ShapeTokens.CornerLargeIncreased,
                     ) {
                         Icon(
                             imageVector = icon,
@@ -310,7 +242,7 @@ internal fun TeeDialogFrame(
                     ) {
                         WrapSafeText(
                             text = title,
-                            style = MaterialTheme.typography.titleLargeEmphasized,
+                            style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         WrapSafeText(
@@ -334,7 +266,7 @@ internal fun TeeDialogFrame(
                 ) {
                     TextButton(onClick = onDismiss) {
                         WrapSafeText(
-                            text = stringResource(R.string.tee_dialog_close),
+                            text = "Close",
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
@@ -351,7 +283,11 @@ internal fun TeeDialogMetricChip(
     value: String,
     modifier: Modifier = Modifier,
 ) {
-    TeeDialogSurface(tone = TeeDialogTone.Highest, modifier = modifier, cornerRadius = 12.dp) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        shape = ShapeTokens.CornerLarge,
+    ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,

@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.FactCheck
@@ -38,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.ui.components.DetectorCardFrame
 import com.eltavine.duckdetector.core.ui.components.DetectorDetailRowBlock
@@ -46,7 +44,6 @@ import com.eltavine.duckdetector.core.ui.components.DetectorFact
 import com.eltavine.duckdetector.core.ui.components.DetectorFactPair
 import com.eltavine.duckdetector.core.ui.components.DetectorHairline
 import com.eltavine.duckdetector.core.ui.components.DetectorSectionFrame
-import com.eltavine.duckdetector.core.ui.components.highestSectionSeverity
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
 import com.eltavine.duckdetector.features.bootloader.presentation.model.BootloaderCardAssessment
@@ -91,9 +88,6 @@ internal fun BootloaderDetectorCard(
                 title = "Boot state",
                 icon = Icons.Rounded.VerifiedUser,
                 rows = model.stateRows,
-                showDivider = model.attestationRows.isNotEmpty() || model.propertyRows.isNotEmpty() ||
-                    model.consistencyRows.isNotEmpty() || model.impactItems.isNotEmpty() ||
-                    model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -102,8 +96,6 @@ internal fun BootloaderDetectorCard(
                 title = "Attestation",
                 icon = Icons.Rounded.Key,
                 rows = model.attestationRows,
-                showDivider = model.propertyRows.isNotEmpty() || model.consistencyRows.isNotEmpty() ||
-                    model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -112,8 +104,6 @@ internal fun BootloaderDetectorCard(
                 title = "Boot properties",
                 icon = Icons.Rounded.Settings,
                 rows = model.propertyRows,
-                showDivider = model.consistencyRows.isNotEmpty() || model.impactItems.isNotEmpty() ||
-                    model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -122,7 +112,6 @@ internal fun BootloaderDetectorCard(
                 title = "Consistency",
                 icon = Icons.AutoMirrored.Rounded.FactCheck,
                 rows = model.consistencyRows,
-                showDivider = model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -131,7 +120,6 @@ internal fun BootloaderDetectorCard(
                 title = "Impact",
                 icon = Icons.Rounded.CrisisAlert,
                 items = model.impactItems,
-                showDivider = model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -140,7 +128,6 @@ internal fun BootloaderDetectorCard(
                 title = "Detection methods",
                 icon = Icons.Rounded.Search,
                 rows = model.methodRows,
-                showDivider = model.scanRows.isNotEmpty(),
             )
         }
 
@@ -149,7 +136,6 @@ internal fun BootloaderDetectorCard(
                 title = "Scan summary",
                 icon = Icons.Rounded.Info,
                 rows = model.scanRows,
-                showDivider = false,
             )
         }
     }
@@ -165,7 +151,7 @@ private fun BootloaderCollapsedOverview(
     val trust = model.headerFacts.firstOrNull { it.fact == BootloaderHeaderFact.TRUST } ?: return
 
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -203,13 +189,10 @@ private fun BootloaderDetailSection(
     title: String,
     icon: ImageVector,
     rows: List<BootloaderDetailRowModel>,
-    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
-        severity = highestSectionSeverity(rows.map { it.status }),
-        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
             rows.forEachIndexed { index, row ->
@@ -240,13 +223,10 @@ private fun BootloaderImpactSection(
     title: String,
     icon: ImageVector,
     items: List<BootloaderImpactItemModel>,
-    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
-        severity = highestSectionSeverity(items.map { it.status }),
-        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items.forEach { item ->

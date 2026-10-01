@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
-import com.eltavine.duckdetector.core.designsystem.theme.AdaptiveShapeTokens
+import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.ui.model.ActionItemModel
 
 @Composable
@@ -38,7 +38,7 @@ public fun ActionChip(
     Column(
         modifier = modifier
             .widthIn(min = 96.dp, max = 220.dp)
-            .background(color = DuckTheme.palette.groupedInset, shape = AdaptiveShapeTokens.CornerMedium)
+            .background(color = DuckTheme.palette.groupedInset, shape = ShapeTokens.CornerMedium)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {

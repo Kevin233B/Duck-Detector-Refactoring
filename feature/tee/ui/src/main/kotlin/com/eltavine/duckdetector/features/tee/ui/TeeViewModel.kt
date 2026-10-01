@@ -67,10 +67,7 @@ class TeeViewModel(
 
     fun onExpandedChange(expanded: Boolean) {
         _uiState.update { state ->
-            // Expanding is presentation-only. Rebuilding all attestation evidence on every tap
-            // blocks the main thread, especially when the report contains large key chains.
-            if (state.cardModel.isExpanded == expanded) state
-            else state.copy(cardModel = state.cardModel.copy(isExpanded = expanded))
+            state.copy(cardModel = mapper.map(state.report, expanded))
         }
     }
 

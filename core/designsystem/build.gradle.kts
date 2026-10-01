@@ -28,8 +28,6 @@ kotlin {
 }
 
 dependencies {
-    api(libs.uihelper)
-    implementation(libs.miuix.ui)
     api(libs.androidx.material3)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.ui)

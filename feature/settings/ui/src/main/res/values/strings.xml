@@ -76,11 +76,6 @@ limitations under the License.
     <string name="licenses_screen_title">Open-source licenses</string>
     <string name="settings_section_detection">Detection options</string>
     <string name="settings_section_network">Network</string>
-    <string name="settings_section_appearance">Appearance</string>
-    <string name="settings_ui_style_title">UI style</string>
-    <string name="settings_ui_style_description">Choose the look of Duck Detector</string>
-    <string name="settings_style_miuix">MIUIX</string>
-    <string name="settings_style_material">Material</string>
     <string name="settings_title">Settings</string>
     <string name="update_settings_label">Check for updates</string>
     <string name="update_status_available">A newer Nightly build is available; tap for details</string>

@@ -21,14 +21,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.Category
@@ -43,82 +42,29 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.features.dangerousapps.presentation.model.DangerousAppsTargetAppModel
-import io.github.xiaotong6666.uihelper.mode.LocalUiMode
-import io.github.xiaotong6666.uihelper.mode.UiMode
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
-import top.yukonga.miuix.kmp.basic.CardDefaults as MiuixCardDefaults
-import top.yukonga.miuix.kmp.basic.HorizontalDivider as MiuixDivider
-import top.yukonga.miuix.kmp.basic.Text as MiuixText
-import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
-import top.yukonga.miuix.kmp.squircle.squircleBackground
-import top.yukonga.miuix.kmp.squircle.squircleClip
-import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.window.WindowDialog
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun DangerousAppsTargetsDialog(
-    show: Boolean,
     targets: List<DangerousAppsTargetAppModel>,
     onDismiss: () -> Unit,
 ) {
     val categoryCount = targets.map { it.category }.distinct().size
-
-    if (LocalUiMode.current == UiMode.Miuix) {
-        WindowDialog(
-            show = show,
-            title = stringResource(R.string.target_app_list_title),
-            summary = stringResource(R.string.target_app_list_summary),
-            onDismissRequest = onDismiss,
-            maxWidth = 560.dp,
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    DangerousAppsDialogMetricChip(Icons.Rounded.Apps, stringResource(R.string.target_app_list_targets), targets.size.toString())
-                    DangerousAppsDialogMetricChip(Icons.Rounded.Category, stringResource(R.string.target_app_list_categories), categoryCount.toString())
-                }
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f, fill = false)
-                        .squircleBackground(MiuixTheme.colorScheme.surfaceContainer, 16.dp)
-                        .squircleClip(16.dp),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                ) {
-                    itemsIndexed(targets) { index, target ->
-                        DangerousAppsTargetRow(target)
-                        if (index < targets.lastIndex) MiuixDivider()
-                    }
-                }
-                MiuixTextButton(text = stringResource(R.string.target_app_list_close), onClick = onDismiss, modifier = Modifier.fillMaxWidth())
-            }
-        }
-        return
-    }
-
-    if (!show) return
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 720.dp),
-            shape = MaterialTheme.shapes.extraLarge,
+            shape = ShapeTokens.CornerExtraLarge,
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                containerColor = MaterialTheme.colorScheme.surface,
             ),
         ) {
             Column(
@@ -133,8 +79,8 @@ internal fun DangerousAppsTargetsDialog(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Surface(
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = ShapeTokens.CornerLargeIncreased,
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Apps,
@@ -150,12 +96,12 @@ internal fun DangerousAppsTargetsDialog(
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         WrapSafeText(
-                            text = stringResource(R.string.target_app_list_title),
+                            text = "Target app list",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         WrapSafeText(
-                            text = stringResource(R.string.target_app_list_summary),
+                            text = "Legacy dangerous-app inventory currently used by this detector.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -168,29 +114,29 @@ internal fun DangerousAppsTargetsDialog(
                 ) {
                     DangerousAppsDialogMetricChip(
                         icon = Icons.Rounded.Apps,
-                        label = stringResource(R.string.target_app_list_targets),
+                        label = "Targets",
                         value = targets.size.toString(),
                     )
                     DangerousAppsDialogMetricChip(
                         icon = Icons.Rounded.Category,
-                        label = stringResource(R.string.target_app_list_categories),
+                        label = "Categories",
                         value = categoryCount.toString(),
                     )
                 }
 
                 Surface(
-                    modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     shape = ShapeTokens.CornerExtraLarge,
                 ) {
-                    LazyColumn(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(max = 600.dp),
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(0.dp),
                     ) {
-                        itemsIndexed(targets) { index, target ->
+                        targets.forEachIndexed { index, target ->
                             DangerousAppsTargetRow(target = target)
                             if (index < targets.lastIndex) {
                                 HorizontalDivider(
@@ -208,7 +154,7 @@ internal fun DangerousAppsTargetsDialog(
                 ) {
                     TextButton(onClick = onDismiss) {
                         WrapSafeText(
-                            text = stringResource(R.string.target_app_list_close),
+                            text = "Close",
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
@@ -222,7 +168,6 @@ internal fun DangerousAppsTargetsDialog(
 private fun DangerousAppsTargetRow(
     target: DangerousAppsTargetAppModel,
 ) {
-    val miuix = LocalUiMode.current == UiMode.Miuix
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -237,19 +182,10 @@ private fun DangerousAppsTargetRow(
             WrapSafeText(
                 text = target.appName,
                 modifier = Modifier.weight(1f),
-                style = if (miuix) MiuixTheme.textStyles.headline1 else MaterialTheme.typography.titleSmall,
-                color = if (miuix) MiuixTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
             )
-            if (miuix) Row(
-                modifier = Modifier
-                    .squircleBackground(MiuixTheme.colorScheme.surfaceContainerHighest, 6.dp)
-                    .padding(horizontal = 10.dp, vertical = 7.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Rounded.Shield, null, tint = MiuixTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
-                MiuixText(target.category, style = MiuixTheme.textStyles.footnote1)
-            } else Surface(
+            Surface(
                 color = MaterialTheme.colorScheme.surfaceContainerHighest,
                 shape = ShapeTokens.CornerFull,
             ) {
@@ -274,9 +210,8 @@ private fun DangerousAppsTargetRow(
         }
         WrapSafeText(
             text = target.packageName,
-            style = (if (miuix) MiuixTheme.textStyles.footnote1 else MaterialTheme.typography.bodySmall)
-                .copy(fontFamily = FontFamily.Monospace),
-            color = if (miuix) MiuixTheme.colorScheme.onSurfaceVariantSummary else MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -287,22 +222,6 @@ private fun DangerousAppsDialogMetricChip(
     label: String,
     value: String,
 ) {
-    if (LocalUiMode.current == UiMode.Miuix) {
-        MiuixCard(
-            cornerRadius = 12.dp,
-            insideMargin = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
-            colors = MiuixCardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainerHighest),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(icon, null, tint = MiuixTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    MiuixText(label, style = MiuixTheme.textStyles.footnote1)
-                    MiuixText(value, style = MiuixTheme.textStyles.body2)
-                }
-            }
-        }
-        return
-    }
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         shape = ShapeTokens.CornerLarge,

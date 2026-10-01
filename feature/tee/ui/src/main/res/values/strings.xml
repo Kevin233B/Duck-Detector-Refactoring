@@ -29,5 +29,4 @@ limitations under the License.
     <string name="tee_revocation_network_setting_title">Allow online CRL refresh</string>
     <string name="tee_revocation_network_setting_summary">TEE revocation checks always use the built-in snapshot; this only permits fetching Google\'s latest attestation revocation feed.</string>
     <string name="tee_revocation_network_setting_footer">Changes apply immediately to online refresh behavior. Built-in TEE revocation checks remain enabled.</string>
-    <string name="tee_dialog_close">Close</string>
 </resources>

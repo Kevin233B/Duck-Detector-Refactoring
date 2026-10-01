@@ -26,25 +26,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.eltavine.duckdetector.core.designsystem.components.DuckPanel
+import com.eltavine.duckdetector.core.designsystem.theme.DuckTheme
 import com.eltavine.duckdetector.core.designsystem.theme.DuckTypography
+import com.eltavine.duckdetector.core.designsystem.theme.ShapeTokens
 import com.eltavine.duckdetector.core.evidence.DetectionSeverity
 import com.eltavine.duckdetector.core.evidence.DetectorStatus
 import com.eltavine.duckdetector.core.ui.components.DetectorHairline
-import com.eltavine.duckdetector.core.ui.components.MiuixStatusLabel
-import com.eltavine.duckdetector.core.ui.components.MaterialSeverityTag
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
 import com.eltavine.duckdetector.features.dashboard.presentation.model.DashboardFindingModel
-import io.github.xiaotong6666.uihelper.mode.LocalUiMode
-import io.github.xiaotong6666.uihelper.mode.UiMode
 
 private val FindingInset = 18.dp
 private const val FINDING_DETAIL_MAX_LINES = 3
@@ -57,8 +53,15 @@ internal fun DashboardFindingsCard(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        if (LocalUiMode.current == UiMode.Material) DashboardFindingsHeader(findings = findings)
-        DuckPanel {
+        DashboardFindingsHeader(findings = findings)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = DuckTheme.palette.groupedSurface,
+                    shape = ShapeTokens.CornerExtraLargeIncreased,
+                ),
+        ) {
             findings.forEachIndexed { index, finding ->
                 DashboardFindingRow(finding = finding)
                 if (index < findings.lastIndex) {
@@ -107,13 +110,10 @@ private fun DashboardFindingsHeader(
         WrapSafeText(
             text = findings.size.toString(),
             modifier = Modifier
-                .background(
-                    MaterialTheme.colorScheme.secondaryContainer,
-                    MaterialTheme.shapes.small,
-                )
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelLargeEmphasized.copy(fontFeatureSettings = "tnum"),
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                .background(color = DuckTheme.palette.groupedSurface, shape = ShapeTokens.CornerFull)
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+            style = DuckTypography.CalloutEmphasized.copy(fontFeatureSettings = "tnum"),
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -143,29 +143,29 @@ private fun DashboardFindingRow(
             WrapSafeText(
                 text = finding.detectorTitle,
                 modifier = Modifier.weight(1f),
-                style = if (LocalUiMode.current == UiMode.Miuix) DuckTypography.PanelCaption else DuckTypography.FootnoteEmphasized,
+                style = DuckTypography.FootnoteEmphasized,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (LocalUiMode.current == UiMode.Miuix) {
-                MiuixStatusLabel(status = finding.status, label = findingSeverityLabel(finding))
-            } else {
-                MaterialSeverityTag(
-                    status = finding.status,
-                    label = findingSeverityLabel(finding),
-                )
-            }
+            WrapSafeText(
+                text = findingSeverityLabel(finding),
+                modifier = Modifier
+                    .background(color = appearance.tintWash, shape = ShapeTokens.CornerFull)
+                    .padding(horizontal = 10.dp, vertical = 3.dp),
+                style = DuckTypography.Caption,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
         }
         WrapSafeText(
             text = finding.headline,
             modifier = Modifier.fillMaxWidth(),
-            style = DuckTypography.PanelTitle,
+            style = DuckTypography.Headline,
             color = MaterialTheme.colorScheme.onSurface,
         )
         // The full evidence stays in the detector's card; a finding only points to it.
         WrapSafeText(
             text = finding.detail,
             modifier = Modifier.fillMaxWidth(),
-            style = DuckTypography.PanelSupporting,
+            style = DuckTypography.Footnote,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = FINDING_DETAIL_MAX_LINES,
             overflow = TextOverflow.Ellipsis,
@@ -173,14 +173,13 @@ private fun DashboardFindingRow(
     }
 }
 
-@Composable
 private fun findingSeverityLabel(
     finding: DashboardFindingModel,
 ): String {
     return when (finding.status.severity) {
-        DetectionSeverity.DANGER -> stringResource(R.string.dashboard_severity_high)
-        DetectionSeverity.WARNING -> stringResource(R.string.dashboard_severity_medium)
-        DetectionSeverity.INFO -> stringResource(R.string.dashboard_severity_check)
-        DetectionSeverity.ALL_CLEAR -> stringResource(R.string.dashboard_severity_clear)
+        DetectionSeverity.DANGER -> "High"
+        DetectionSeverity.WARNING -> "Warn"
+        DetectionSeverity.INFO -> "Check"
+        DetectionSeverity.ALL_CLEAR -> "Clear"
     }
 }

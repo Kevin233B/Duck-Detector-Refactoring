@@ -44,21 +44,22 @@ import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun TeeCertificatesDialog(
-    show: Boolean,
     label: String,
     count: String,
     certificates: List<TeeCertificateItem>,
     onDismiss: () -> Unit,
 ) {
     TeeDialogFrame(
-        show = show,
         title = "Certificate chain",
         subtitle = "Attestation certificates exposed by the current scan.",
         icon = Icons.Rounded.VerifiedUser,
         onDismiss = onDismiss,
     ) {
         if (certificates.isEmpty()) {
-            TeeDialogSurface(tone = TeeDialogTone.Low) {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shape = ShapeTokens.CornerExtraLarge,
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -135,7 +136,10 @@ private fun TeeCertificateOverviewChip(
     label: String,
     value: String,
 ) {
-    TeeDialogSurface(tone = TeeDialogTone.Highest, cornerRadius = 12.dp) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        shape = ShapeTokens.CornerLarge,
+    ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,

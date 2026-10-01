@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BugReport
@@ -36,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.ui.unit.dp
 import com.eltavine.duckdetector.core.ui.components.DetectorCardFrame
 import com.eltavine.duckdetector.core.ui.components.DetectorDetailRowBlock
@@ -44,7 +42,6 @@ import com.eltavine.duckdetector.core.ui.components.DetectorFact
 import com.eltavine.duckdetector.core.ui.components.DetectorFactPair
 import com.eltavine.duckdetector.core.ui.components.DetectorHairline
 import com.eltavine.duckdetector.core.ui.components.DetectorSectionFrame
-import com.eltavine.duckdetector.core.ui.components.highestSectionSeverity
 import com.eltavine.duckdetector.core.ui.components.WrapSafeText
 import com.eltavine.duckdetector.core.ui.presentation.rememberStatusAppearance
 import com.eltavine.duckdetector.features.kernelcheck.presentation.model.KernelCheckCardModel
@@ -75,8 +72,6 @@ internal fun KernelCheckDetectorCard(
                 title = "Kernel identity",
                 icon = Icons.Rounded.Description,
                 rows = model.identityRows,
-                showDivider = model.anomalyRows.isNotEmpty() || model.behaviorRows.isNotEmpty() ||
-                    model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -85,8 +80,6 @@ internal fun KernelCheckDetectorCard(
                 title = "Anomalies",
                 icon = Icons.Rounded.Warning,
                 rows = model.anomalyRows,
-                showDivider = model.behaviorRows.isNotEmpty() || model.impactItems.isNotEmpty() ||
-                    model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -95,7 +88,6 @@ internal fun KernelCheckDetectorCard(
                 title = "Kernel behavior",
                 icon = Icons.Rounded.BugReport,
                 rows = model.behaviorRows,
-                showDivider = model.impactItems.isNotEmpty() || model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -104,7 +96,6 @@ internal fun KernelCheckDetectorCard(
                 title = "Impact",
                 icon = Icons.Rounded.CrisisAlert,
                 items = model.impactItems,
-                showDivider = model.methodRows.isNotEmpty() || model.scanRows.isNotEmpty(),
             )
         }
 
@@ -113,7 +104,6 @@ internal fun KernelCheckDetectorCard(
                 title = "Detection methods",
                 icon = Icons.Rounded.Search,
                 rows = model.methodRows,
-                showDivider = model.scanRows.isNotEmpty(),
             )
         }
 
@@ -122,7 +112,6 @@ internal fun KernelCheckDetectorCard(
                 title = "Scan summary",
                 icon = Icons.Rounded.Info,
                 rows = model.scanRows,
-                showDivider = false,
             )
         }
     }
@@ -138,7 +127,7 @@ private fun KernelCheckCollapsedOverview(
     val native = model.headerFacts.firstOrNull { it.fact == KernelCheckHeaderFact.NATIVE } ?: return
 
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -176,13 +165,10 @@ private fun KernelCheckDetailSection(
     title: String,
     icon: ImageVector,
     rows: List<KernelCheckDetailRowModel>,
-    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
-        severity = highestSectionSeverity(rows.map { it.status }),
-        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
             rows.forEachIndexed { index, row ->
@@ -213,13 +199,10 @@ private fun KernelCheckImpactSection(
     title: String,
     icon: ImageVector,
     items: List<KernelCheckImpactItemModel>,
-    showDivider: Boolean = true,
 ) {
     DetectorSectionFrame(
         title = title,
         icon = icon,
-        severity = highestSectionSeverity(items.map { it.status }),
-        showDivider = showDivider,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items.forEach { item ->
