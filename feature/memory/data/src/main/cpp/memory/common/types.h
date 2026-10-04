@@ -75,6 +75,9 @@ namespace duckdetector::memory {
     struct MapsSignals {
         bool writable_exec = false;
         bool anonymous_exec = false;
+        // A page of an executable system file mapping became a private copy, which takes a write
+        // after mapping; smaps does not tell whether the copy still matches the file.
+        bool system_anonymous_exec = false;
         bool swapped_exec = false;
         bool shared_dirty_exec = false;
         std::vector<Finding> findings;
