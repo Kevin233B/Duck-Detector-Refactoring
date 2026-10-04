@@ -166,4 +166,88 @@ class MemoryRepositoryTest {
 
         assertTrue(repository.isBenignArtCodeCacheSwapFinding(finding))
     }
+
+    @Test
+    fun `sanitizes webview provider anonymous executable pages`() {
+        val webviewRepository = MemoryRepository(
+            benignCodePaths = listOf("/product/app/webview/webview.apk"),
+        )
+        val snapshot = MemoryNativeSnapshot(
+            available = true,
+            anonymousExec = true,
+            findings = listOf(
+                MemoryNativeFinding(
+                    section = "MAPS",
+                    category = "SMAPS",
+                    label = "Anonymous executable pages on system mapping",
+                    severity = "MEDIUM",
+                    detail = "/product/app/webview/webview.apk reports 4 kB anonymous executable pages",
+                ),
+            ),
+        )
+
+        val sanitized = webviewRepository.sanitizeSnapshot(snapshot)
+        val mapsMethod = webviewRepository.buildMethods(sanitized).first { it.label == "maps + smaps" }
+
+        assertFalse(sanitized.anonymousExec)
+        assertTrue(sanitized.findings.isEmpty())
+        assertEquals("Clean", mapsMethod.summary)
+        assertEquals(MemoryMethodOutcome.CLEAN, mapsMethod.outcome)
+    }
+
+    @Test
+    fun `keeps anonymous executable system mapping findings for other paths`() {
+        val webviewRepository = MemoryRepository(
+            benignCodePaths = listOf("/product/app/webview/webview.apk"),
+        )
+        val snapshot = MemoryNativeSnapshot(
+            available = true,
+            anonymousExec = true,
+            findings = listOf(
+                MemoryNativeFinding(
+                    section = "MAPS",
+                    category = "SMAPS",
+                    label = "Anonymous executable pages on system mapping",
+                    severity = "MEDIUM",
+                    detail = "/system/lib64/libc.so reports 16 kB anonymous executable pages",
+                ),
+            ),
+        )
+
+        val sanitized = webviewRepository.sanitizeSnapshot(snapshot)
+        val mapsMethod = webviewRepository.buildMethods(sanitized).first { it.label == "maps + smaps" }
+
+        assertTrue(sanitized.anonymousExec)
+        assertEquals(1, sanitized.findings.size)
+        assertEquals("Anomaly", mapsMethod.summary)
+        assertEquals(MemoryMethodOutcome.DETECTED, mapsMethod.outcome)
+    }
+
+    @Test
+    fun `keeps anonymous executable mapping findings even for benign code paths`() {
+        val webviewRepository = MemoryRepository(
+            benignCodePaths = listOf("/product/app/webview/webview.apk"),
+        )
+        val snapshot = MemoryNativeSnapshot(
+            available = true,
+            anonymousExec = true,
+            findings = listOf(
+                MemoryNativeFinding(
+                    section = "MAPS",
+                    category = "SMAPS",
+                    label = "Anonymous executable code",
+                    severity = "HIGH",
+                    detail = "Executable anonymous mapping 0x712345678000-0x712346000000 [anonymous]",
+                ),
+            ),
+        )
+
+        val sanitized = webviewRepository.sanitizeSnapshot(snapshot)
+        val mapsMethod = webviewRepository.buildMethods(sanitized).first { it.label == "maps + smaps" }
+
+        assertTrue(sanitized.anonymousExec)
+        assertEquals(1, sanitized.findings.size)
+        assertEquals("Anomaly", mapsMethod.summary)
+        assertEquals(MemoryMethodOutcome.DETECTED, mapsMethod.outcome)
+    }
 }
