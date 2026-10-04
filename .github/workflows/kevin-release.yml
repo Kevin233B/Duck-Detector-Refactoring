@@ -1,0 +1,85 @@
+# Kevin233 fork release build: builds a release APK with the fork's committed signing
+# key and uploads it as a workflow artifact. The upstream Telegram push workflow stays
+# disabled in this fork (workflow_dispatch only) because it needs upstream secrets.
+name: Kevin release APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build signed release APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Android build toolchain
+        id: toolchain
+        uses: ./.github/actions/setup-android-build
+        with:
+          cache-read-only: false
+
+      - name: Read fork signing configuration
+        id: signing
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          keystore_dir="$(pwd)/keystore"
+          properties_file="${keystore_dir}/keystore.properties"
+          [ -f "${properties_file}" ] || { echo "keystore.properties missing." >&2; exit 1; }
+
+          keystore_path="${keystore_dir}/$(sed -n 's/^storeFile=\(.*\)$/\1/p' "${properties_file}")"
+          store_password="$(sed -n 's/^storePassword=\(.*\)$/\1/p' "${properties_file}")"
+          key_alias="$(sed -n 's/^keyAlias=\(.*\)$/\1/p' "${properties_file}")"
+          key_password="$(sed -n 's/^keyPassword=\(.*\)$/\1/p' "${properties_file}")"
+          [ -f "${keystore_path}" ] || { echo "keystore file missing." >&2; exit 1; }
+
+          echo "keystore_path=${keystore_path}" >> "$GITHUB_OUTPUT"
+          echo "store_password=${store_password}" >> "$GITHUB_OUTPUT"
+          echo "key_alias=${key_alias}" >> "$GITHUB_OUTPUT"
+          echo "key_password=${key_password}" >> "$GITHUB_OUTPUT"
+
+      - name: Build release APK
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ steps.signing.outputs.keystore_path }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ steps.signing.outputs.store_password }}
+          ANDROID_KEY_ALIAS: ${{ steps.signing.outputs.key_alias }}
+          ANDROID_KEY_PASSWORD: ${{ steps.signing.outputs.key_password }}
+        run: |
+          set -euo pipefail
+
+          ./gradlew --stacktrace :app:assembleRelease
+
+      - name: Collect APK
+        run: |
+          set -euo pipefail
+
+          mkdir -p dist
+          cp app/build/outputs/apk/release/*.apk dist/
+          ls -la dist/
+          sha256sum dist/*.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: duck-detector-fork-release-apk
+          path: dist/*.apk
+          if-no-files-found: error

@@ -22,6 +22,11 @@ name: CI
 # Only pull_request is used, not push. A branch in this repository that has an open pull request
 # would otherwise match both triggers and run the whole matrix twice for one commit.
 on:
+  # Kevin233 fork: push builds on main run the same checks pull requests do, because this
+  # fork pushes straight to main instead of opening pull requests.
+  push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 

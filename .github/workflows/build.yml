@@ -16,9 +16,7 @@
 name: Build APK And SDK AAR And Push To Telegram
 
 on:
-  push:
-    branches:
-      - main
+  # Kevin233 fork: the Telegram push build needs upstream-only secrets, so it stays manual.
   workflow_dispatch:
 
 concurrency:
