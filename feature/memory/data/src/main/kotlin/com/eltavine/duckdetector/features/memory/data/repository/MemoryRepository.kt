@@ -33,6 +33,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class MemoryRepository(
+    /**
+     * Code container paths whose system-path anonymous executable pages are known benign on
+     * this device, currently the installed WebView provider's APK sourceDir. Details are the
+     * exact installed paths, so matching is exact-path containment, not prefix guessing.
+     */
+    private val benignCodePaths: List<String> = emptyList(),
     private val nativeBridge: MemoryNativeBridge = MemoryNativeBridge(),
 ) : DetectorScanner<MemoryReport> {
 
@@ -220,20 +226,53 @@ class MemoryRepository(
         }
     }
 
+    /**
+     * Sanitizes the native snapshot before it is judged.
+     *
+     * The dynamic loader legitimately creates executable anonymous pages outside ART's code
+     * caches: the installed WebView provider ships its native libraries uncompressed inside its
+     * APK, and the Bionic linker loads them straight from that APK (frameworks/base
+     * core/java/android/webkit/WebViewFactory, and the loading path behind
+     * android:extractNativeLibs="false"), applying relocations that turn private copy-on-write
+     * pages into anonymous pages on an executable system-path mapping. Every process that
+     * instantiates a WebView reports that artifact, so when [benignCodePaths] contains the
+     * provider APK's installed sourceDir the repository removes that known case, the same way it
+     * removes ART's code caches.
+     */
     internal fun sanitizeSnapshot(snapshot: MemoryNativeSnapshot): MemoryNativeSnapshot {
         if (!snapshot.available || snapshot.findings.isEmpty()) {
             return snapshot
         }
 
-        val filteredFindings = snapshot.findings.filterNot(::isBenignArtCodeCacheSwapFinding)
+        val filteredFindings = snapshot.findings
+            .filterNot(::isBenignArtCodeCacheSwapFinding)
+            .filterNot(::isBenignWebViewProviderCodeFinding)
         val hasSwappedExecFinding = filteredFindings.any { finding ->
             finding.section.equals("MAPS", ignoreCase = true) &&
                     finding.label == SWAPPED_EXEC_LABEL
         }
+        val hasAnonymousExecFinding = filteredFindings.any { finding ->
+            finding.label == ANONYMOUS_EXEC_MAPPING_LABEL ||
+                    finding.label == SYSTEM_ANONYMOUS_EXEC_LABEL
+        }
         return snapshot.copy(
             swappedExec = hasSwappedExecFinding,
+            anonymousExec = hasAnonymousExecFinding,
             findings = filteredFindings,
         )
+    }
+
+    /**
+     * Whether [finding] is the system-path anonymous executable pages report for a code
+     * container known benign on this device: the WebView provider APK in [benignCodePaths].
+     * Findings for any other mapping, and the plain "Anonymous executable code" finding for
+     * anonymous executable mappings, are injection evidence and always stay.
+     */
+    internal fun isBenignWebViewProviderCodeFinding(finding: MemoryNativeFinding): Boolean {
+        if (finding.label != SYSTEM_ANONYMOUS_EXEC_LABEL) {
+            return false
+        }
+        return benignCodePaths.any(finding.detail::contains)
     }
 
     internal fun isBenignArtCodeCacheSwapFinding(finding: MemoryNativeFinding): Boolean {
@@ -279,6 +318,8 @@ class MemoryRepository(
 
     private companion object {
         private const val SWAPPED_EXEC_LABEL = "Swapped executable pages"
+        private const val ANONYMOUS_EXEC_MAPPING_LABEL = "Anonymous executable code"
+        private const val SYSTEM_ANONYMOUS_EXEC_LABEL = "Anonymous executable pages on system mapping"
 
         private val BENIGN_ART_CODE_CACHE_MARKERS = listOf(
             "dalvik-jit-code-cache",
